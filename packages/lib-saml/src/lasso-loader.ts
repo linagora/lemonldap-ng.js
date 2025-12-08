@@ -109,7 +109,6 @@ export function tryLoadLassoSync(): boolean {
   if (loadError) return false;
 
   try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
     lassoModule = require("lasso.js");
     return true;
   } catch (err) {

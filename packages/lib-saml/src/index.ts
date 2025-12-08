@@ -46,11 +46,19 @@ export {
   AuthnContext,
 } from "./lasso-loader";
 
-// Re-export lasso types
+// Re-export lasso types with full names
 export type {
   LassoServer,
   LassoLogin,
   LassoLogout,
   LassoIdentity,
   LassoSession,
+  HttpMethodType,
+  SignatureMethodType,
 } from "./lasso-loader";
+
+// Backward-compatible type aliases (without Lasso prefix)
+export type { LassoLogin as Login } from "./lasso-loader";
+export type { LassoLogout as Logout } from "./lasso-loader";
+export type { LassoIdentity as Identity } from "./lasso-loader";
+export type { LassoSession as Session } from "./lasso-loader";

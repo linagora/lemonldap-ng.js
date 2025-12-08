@@ -18,6 +18,7 @@ import {
   nameIdFormatToUrn,
   extractSamlMessage,
   buildPostForm,
+  type HttpMethodType,
   type Logger,
   type SAMLSPMetaDataOptions,
   type SamlAttribute,
@@ -351,7 +352,7 @@ export class SAMLIssuer {
    */
   async initiateLogout(
     sessionId: string,
-    method: HttpMethod = HttpMethod.REDIRECT,
+    method: HttpMethodType = HttpMethod.REDIRECT,
   ): Promise<SAMLResponse | null> {
     const samlSession = await this.config.getSAMLSession?.(sessionId);
     if (!samlSession?._lassoSessionDump) {
