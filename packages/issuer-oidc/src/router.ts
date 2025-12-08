@@ -2,7 +2,7 @@
  * Express Router for OIDC Provider endpoints
  */
 
-import { Router, Request, Response } from "express";
+import { Router, Request, Response, RequestHandler } from "express";
 import { OIDCProvider } from "./provider";
 import {
   AuthorizationRequest,
@@ -11,11 +11,27 @@ import {
 } from "./types";
 
 /**
+ * Rate limiting configuration options (for router-level override)
+ */
+export interface RateLimitOptions {
+  /** Skip rate limiting for certain requests */
+  skip?: (req: Request) => boolean;
+}
+
+/**
  * Router options
  */
 export interface OIDCRouterOptions {
   /** OIDC Provider instance */
   provider: OIDCProvider;
+
+  /**
+   * Optional rate limiting overrides.
+   * Rate limiting is configured globally via provider config
+   * (portalRateLimit, portalRateLimitMax, portalRateLimitWindow).
+   * Requires 'express-rate-limit' package to be installed.
+   */
+  rateLimit?: RateLimitOptions;
 
   /**
    * Callback to check if user is authenticated
@@ -58,16 +74,64 @@ export interface OIDCRouterOptions {
 }
 
 /**
+ * Try to load express-rate-limit (optional dependency)
+ */
+function tryLoadRateLimiter(
+  providerConfig: { enabled: boolean; max: number; windowMs: number },
+  routerOptions?: RateLimitOptions,
+): RequestHandler | null {
+  if (!providerConfig.enabled) {
+    return null;
+  }
+
+  try {
+    const rateLimit =
+      require("express-rate-limit").default || require("express-rate-limit");
+    return rateLimit({
+      windowMs: providerConfig.windowMs,
+      max: providerConfig.max,
+      message: {
+        error: "too_many_requests",
+        error_description: "Too many requests, please try again later",
+      },
+      standardHeaders: true,
+      legacyHeaders: false,
+      skip: routerOptions?.skip,
+    });
+  } catch {
+    console.warn(
+      "OIDC Router: Rate limiting enabled but 'express-rate-limit' is not installed. " +
+        "Install it with: npm install express-rate-limit",
+    );
+    return null;
+  }
+}
+
+/**
  * Create OIDC router
  */
 export function createOIDCRouter(options: OIDCRouterOptions): Router {
   const router = Router();
-  const { provider } = options;
+  const { provider, rateLimit: rateLimitOptions } = options;
 
   // Initialize provider
   provider.init().catch((err) => {
     console.error("Failed to initialize OIDC provider:", err);
   });
+
+  // Apply rate limiting from global portal config
+  const rateLimitConfig = provider.getRateLimitConfig();
+  if (rateLimitConfig.enabled) {
+    const limiter = tryLoadRateLimiter(rateLimitConfig, rateLimitOptions);
+    if (limiter) {
+      // Apply rate limiting to sensitive endpoints
+      router.use("/token", limiter);
+      router.use("/authorize", limiter);
+      router.use("/userinfo", limiter);
+      router.use("/introspect", limiter);
+      router.use("/register", limiter);
+    }
+  }
 
   // Discovery endpoint
   router.get(
