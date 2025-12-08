@@ -204,4 +204,12 @@ export interface LLNG_Conf_Extended extends LLNG_Conf {
 
   /* Session Cache */
   handlerInternalCache?: number;
+
+  /* Rate Limiting (portal-wide, requires express-rate-limit) */
+  /** Enable rate limiting (default: false) */
+  portalRateLimit?: boolean;
+  /** Max requests per window (default: 100) */
+  portalRateLimitMax?: number;
+  /** Window duration in seconds (default: 60) */
+  portalRateLimitWindow?: number;
 }
