@@ -5,6 +5,12 @@
 import { SAMLValidateRequest, CASValidateResult } from "./types";
 
 /**
+ * Maximum XML input size to prevent ReDoS attacks
+ * 1MB should be more than enough for any valid CAS/SAML response
+ */
+const MAX_XML_SIZE = 1024 * 1024;
+
+/**
  * Simple XML tag extraction (without full XML parser dependency)
  */
 function extractTagContent(xml: string, tagName: string): string | null {
@@ -60,7 +66,7 @@ function extractAttribute(
 export function parseSamlValidateRequest(
   xml: string,
 ): SAMLValidateRequest | null {
-  if (!xml) return null;
+  if (!xml || xml.length > MAX_XML_SIZE) return null;
 
   // Extract ticket from AssertionArtifact
   const ticket = extractTagContent(xml, "AssertionArtifact");
@@ -95,11 +101,11 @@ function unescapeXml(str: string): string {
  * Parse CAS serviceValidate response
  */
 export function parseServiceValidateResponse(xml: string): CASValidateResult {
-  if (!xml) {
+  if (!xml || xml.length > MAX_XML_SIZE) {
     return {
       success: false,
       code: "INVALID_RESPONSE",
-      message: "Empty response",
+      message: !xml ? "Empty response" : "Response too large",
     };
   }
 
@@ -199,11 +205,11 @@ export function parseValidateResponse(response: string): CASValidateResult {
  * Parse SAML validate response (for CAS SP)
  */
 export function parseSamlValidateResponse(xml: string): CASValidateResult {
-  if (!xml) {
+  if (!xml || xml.length > MAX_XML_SIZE) {
     return {
       success: false,
       code: "INVALID_RESPONSE",
-      message: "Empty response",
+      message: !xml ? "Empty response" : "Response too large",
     };
   }
 
@@ -273,11 +279,11 @@ export function parseProxyResponse(
 ):
   | { success: true; proxyTicket: string }
   | { success: false; code: string; message: string } {
-  if (!xml) {
+  if (!xml || xml.length > MAX_XML_SIZE) {
     return {
       success: false,
       code: "INVALID_RESPONSE",
-      message: "Empty response",
+      message: !xml ? "Empty response" : "Response too large",
     };
   }
 

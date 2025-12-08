@@ -573,6 +573,12 @@ export class CASIssuer {
       return undefined;
     }
 
+    // Defensive type check - pgtUrl could be array from query params
+    if (typeof pgtUrl !== "string") {
+      this.log("warn", "Invalid pgtUrl type");
+      return undefined;
+    }
+
     // Validate pgtUrl (must be HTTPS)
     if (!pgtUrl.startsWith("https://")) {
       this.log("warn", `Invalid pgtUrl (not HTTPS): ${pgtUrl}`);
@@ -698,6 +704,10 @@ export class CASIssuer {
    * Build redirect URL with ticket
    */
   private buildRedirectUrl(service: string, ticket: string): string {
+    // Defensive type check - service could be array from query params
+    if (typeof service !== "string") {
+      service = String(service);
+    }
     const separator = service.includes("?") ? "&" : "?";
     return `${service}${separator}ticket=${ticket}`;
   }

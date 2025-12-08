@@ -476,12 +476,27 @@ async function handleEndSession(
 ): Promise<void> {
   const { provider, renderLogout } = options;
 
-  const postLogoutRedirectUri = (req.query.post_logout_redirect_uri ||
-    req.body?.post_logout_redirect_uri) as string;
-  const idTokenHint = (req.query.id_token_hint ||
-    req.body?.id_token_hint) as string;
-  const clientId = (req.query.client_id || req.body?.client_id) as string;
-  const state = (req.query.state || req.body?.state) as string;
+  // Helper to safely extract string param (could be array from query string)
+  const getStringParam = (
+    value: string | string[] | undefined,
+  ): string | undefined => {
+    if (Array.isArray(value)) return value[0];
+    return value;
+  };
+
+  const postLogoutRedirectUri =
+    getStringParam(
+      req.query.post_logout_redirect_uri as string | string[] | undefined,
+    ) || getStringParam(req.body?.post_logout_redirect_uri);
+  const idTokenHint =
+    getStringParam(req.query.id_token_hint as string | string[] | undefined) ||
+    getStringParam(req.body?.id_token_hint);
+  const clientId =
+    getStringParam(req.query.client_id as string | string[] | undefined) ||
+    getStringParam(req.body?.client_id);
+  const state =
+    getStringParam(req.query.state as string | string[] | undefined) ||
+    getStringParam(req.body?.state);
 
   // Validate logout request
   const validation = provider.validateLogoutRequest({
