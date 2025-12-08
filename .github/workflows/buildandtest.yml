@@ -139,7 +139,7 @@ jobs:
         run: npm run build
 
       - name: Start Perl OP container
-        run: docker-compose -f test/interop/docker-compose.perl-op.yml up -d
+        run: docker compose -f test/interop/docker-compose.perl-op.yml up -d
 
       - name: Wait for Perl OP to be ready
         run: |
@@ -161,10 +161,10 @@ jobs:
 
       - name: Stop Perl OP container
         if: always()
-        run: docker-compose -f test/interop/docker-compose.perl-op.yml down
+        run: docker compose -f test/interop/docker-compose.perl-op.yml down
 
       - name: Start Perl RP container
-        run: docker-compose -f test/interop/docker-compose.perl-rp.yml up -d
+        run: docker compose -f test/interop/docker-compose.perl-rp.yml up -d
 
       - name: Wait for Perl RP to be ready
         run: |
@@ -186,7 +186,7 @@ jobs:
 
       - name: Stop Perl RP container
         if: always()
-        run: docker-compose -f test/interop/docker-compose.perl-rp.yml down
+        run: docker compose -f test/interop/docker-compose.perl-rp.yml down
 
   audit:
     runs-on: ubuntu-22.04
