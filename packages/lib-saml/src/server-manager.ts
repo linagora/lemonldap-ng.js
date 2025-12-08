@@ -7,8 +7,6 @@
 
 import {
   loadLasso,
-  getLasso,
-  isLassoLoaded,
   type LassoServer,
   type ProviderInfo,
 } from "./lasso-loader";
