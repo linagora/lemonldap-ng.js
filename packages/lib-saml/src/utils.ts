@@ -318,10 +318,20 @@ export function parseQueryString(query: string): Record<string, string> {
 }
 
 /**
+ * Maximum SOAP envelope size to prevent ReDoS attacks
+ */
+const MAX_SOAP_SIZE = 1024 * 1024; // 1MB
+
+/**
  * Extract SAML message from SOAP envelope
  * Supports both LogoutRequest and LogoutResponse
  */
 export function extractSamlFromSoap(soapEnvelope: string): string | null {
+  // Limit input size to prevent ReDoS
+  if (!soapEnvelope || soapEnvelope.length > MAX_SOAP_SIZE) {
+    return null;
+  }
+
   // Try to extract LogoutRequest
   let match = soapEnvelope.match(
     /<(?:samlp:|)[Ll]ogout[Rr]equest[\s\S]*?<\/(?:samlp:|)[Ll]ogout[Rr]equest>/,

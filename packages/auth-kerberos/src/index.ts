@@ -165,12 +165,32 @@ export class KerberosAuth {
    */
   extractToken(req: Request): string | null {
     const authHeader = req.headers.authorization;
-    if (!authHeader) {
+    // Limit header length to prevent potential issues with very long inputs
+    if (!authHeader || authHeader.length > 8192) {
       return null;
     }
 
-    const match = authHeader.match(/^Negotiate\s+(.+)$/i);
-    return match ? match[1] : null;
+    // Use case-insensitive prefix check and manual whitespace handling
+    // to avoid regex that might trigger ReDoS warnings
+    const headerLower = authHeader.toLowerCase();
+    if (!headerLower.startsWith("negotiate")) {
+      return null;
+    }
+
+    // Skip "negotiate" (9 chars) and whitespace
+    let pos = 9;
+    while (pos < authHeader.length) {
+      const c = authHeader[pos];
+      if (c !== " " && c !== "\t") break;
+      pos++;
+    }
+
+    // Must have at least one whitespace after "negotiate"
+    if (pos === 9 || pos >= authHeader.length) {
+      return null;
+    }
+
+    return authHeader.substring(pos);
   }
 
   /**

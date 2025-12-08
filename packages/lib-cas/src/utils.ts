@@ -10,6 +10,10 @@ export function isServiceUrlValid(
   serviceUrl: string,
   allowedPatterns: string[],
 ): boolean {
+  // Defensive type check - ensure serviceUrl is a string (could be array from query params)
+  if (typeof serviceUrl !== "string") {
+    return false;
+  }
   if (!serviceUrl || !allowedPatterns || allowedPatterns.length === 0) {
     return false;
   }
@@ -87,6 +91,10 @@ export function appendQueryParam(
   key: string,
   value: string,
 ): string {
+  // Defensive type check
+  if (typeof url !== "string") {
+    url = String(url);
+  }
   const separator = url.includes("?") ? "&" : "?";
   return `${url}${separator}${encodeURIComponent(key)}=${encodeURIComponent(value)}`;
 }
@@ -218,7 +226,11 @@ export function buildSamlValidateUrl(
  * Normalize CAS server URL (remove trailing slash)
  */
 export function normalizeCasServerUrl(url: string): string {
-  return url.replace(/\/+$/, "");
+  // Remove trailing slashes without regex to avoid ReDoS warnings
+  while (url.endsWith("/")) {
+    url = url.slice(0, -1);
+  }
+  return url;
 }
 
 /**

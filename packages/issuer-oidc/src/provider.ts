@@ -2068,6 +2068,11 @@ export class OIDCProvider {
    * Check if a URI is potentially dangerous (XSS, injection)
    */
   private isDangerousUri(uri: string): boolean {
+    // Limit URI length to prevent potential ReDoS (also rejects unreasonably long URIs)
+    if (!uri || uri.length > 8192) {
+      return true;
+    }
+
     // Check for dangerous schemes
     const dangerousSchemes = /^\s*(javascript|vbscript|data):/i;
     if (dangerousSchemes.test(uri)) {
