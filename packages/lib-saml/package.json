@@ -27,7 +27,8 @@
       "email": "yadd@debian.org"
     }
   ],
-  "dependencies": {
+  "dependencies": {},
+  "optionalDependencies": {
     "lasso.js": "^0.1.0"
   },
   "devDependencies": {

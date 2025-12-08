@@ -33,19 +33,24 @@ export {
   parseQueryString,
 } from "./utils";
 
-// Re-export key lasso.js items for convenience
+// Export lasso loader utilities
 export {
-  init as initLasso,
-  shutdown as shutdownLasso,
-  isInitialized as isLassoInitialized,
-  checkVersion as lassoVersion,
-  Server,
-  Login,
-  Logout,
-  Identity,
-  Session,
+  loadLasso,
+  getLasso,
+  isLassoLoaded,
+  tryLoadLassoSync,
+  LassoNotAvailableError,
   HttpMethod,
   SignatureMethod,
   NameIdFormat,
   AuthnContext,
-} from "lasso.js";
+} from "./lasso-loader";
+
+// Re-export lasso types
+export type {
+  LassoServer,
+  LassoLogin,
+  LassoLogout,
+  LassoIdentity,
+  LassoSession,
+} from "./lasso-loader";

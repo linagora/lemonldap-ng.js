@@ -6,12 +6,12 @@
  */
 
 import {
-  init as lassoInit,
-  shutdown as _lassoShutdown,
-  isInitialized as lassoIsInitialized,
-  Server,
+  loadLasso,
+  getLasso,
+  isLassoLoaded,
+  type LassoServer,
   type ProviderInfo,
-} from "lasso.js";
+} from "./lasso-loader";
 
 import type { Logger, SAMLServiceConfig } from "./types";
 
@@ -33,7 +33,7 @@ export interface ServerManagerConfig extends SAMLServiceConfig {
 export class ServerManager {
   private config: ServerManagerConfig;
   private logger: Logger;
-  private server: Server | null = null;
+  private server: LassoServer | null = null;
   private initialized = false;
   private metadataCache: string | null = null;
 
@@ -48,10 +48,13 @@ export class ServerManager {
   async init(): Promise<void> {
     if (this.initialized) return;
 
+    // Load lasso.js dynamically (will throw if not available)
+    const lasso = await loadLasso();
+
     // Initialize Lasso library if not already done
-    if (!lassoIsInitialized()) {
+    if (!lasso.isInitialized()) {
       this.logger.info("SAML ServerManager: Initializing Lasso library");
-      lassoInit();
+      lasso.init();
     }
 
     // Check required configuration
@@ -74,7 +77,7 @@ export class ServerManager {
       this.metadataCache = metadata;
 
       // Create Server from our metadata and keys
-      this.server = Server.fromBuffers(
+      this.server = lasso.Server.fromBuffers(
         metadata,
         this.config.samlServiceMetaDataPrivateKeySig,
         this.config.samlServiceMetaDataPublicKeySig,
@@ -172,7 +175,7 @@ export class ServerManager {
   /**
    * Get the Lasso Server instance
    */
-  getServer(): Server {
+  getServer(): LassoServer {
     if (!this.server) {
       throw new Error("SAML ServerManager: Server not initialized");
     }

@@ -5,7 +5,13 @@
  * NameID format conversion, and binding detection.
  */
 
-import { HttpMethod, NameIdFormat, SignatureMethod } from "lasso.js";
+import {
+  HttpMethod,
+  NameIdFormat,
+  SignatureMethod,
+  type HttpMethodType,
+  type SignatureMethodType,
+} from "./lasso-loader";
 import type {
   SAMLBinding,
   SAMLNameIDFormatType,
@@ -15,7 +21,7 @@ import type {
 /**
  * Convert SAML binding string to HttpMethod enum
  */
-export function bindingToHttpMethod(binding: SAMLBinding): HttpMethod {
+export function bindingToHttpMethod(binding: SAMLBinding): HttpMethodType {
   switch (binding) {
     case "http-redirect":
       return HttpMethod.REDIRECT;
@@ -33,7 +39,7 @@ export function bindingToHttpMethod(binding: SAMLBinding): HttpMethod {
 /**
  * Convert HttpMethod enum to SAML binding string
  */
-export function httpMethodToBinding(method: HttpMethod): SAMLBinding {
+export function httpMethodToBinding(method: HttpMethodType): SAMLBinding {
   switch (method) {
     case HttpMethod.REDIRECT:
       return "http-redirect";
@@ -96,7 +102,7 @@ export function urnToNameIdFormat(urn: string): SAMLNameIDFormatType {
  */
 export function signatureMethodToEnum(
   method: SAMLSignatureMethod,
-): SignatureMethod {
+): SignatureMethodType {
   switch (method) {
     case "RSA_SHA1":
       return SignatureMethod.RSA_SHA1;
@@ -118,7 +124,7 @@ export function detectHttpMethod(req: {
   method?: string;
   body?: unknown;
   query?: unknown;
-}): HttpMethod {
+}): HttpMethodType {
   if (req.method === "POST") {
     return HttpMethod.POST;
   }
@@ -138,7 +144,7 @@ export function extractSamlMessage(req: {
   message: string | null;
   isRequest: boolean;
   relayState: string | null;
-  method: HttpMethod;
+  method: HttpMethodType;
 } {
   const method = detectHttpMethod(req);
   const params = method === HttpMethod.POST ? req.body : req.query;
@@ -178,7 +184,7 @@ export function extractSamlMessage(req: {
  */
 export function decodeSamlMessage(
   message: string,
-  _method: HttpMethod,
+  _method: HttpMethodType,
 ): string {
   // lasso.js handles decoding internally, so we just return as-is
   // For POST binding, message is base64 encoded
