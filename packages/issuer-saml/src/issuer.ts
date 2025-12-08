@@ -17,6 +17,8 @@ import {
   AuthnContext,
   nameIdFormatToUrn,
   extractSamlMessage,
+  extractSamlFromSoap,
+  wrapInSoapEnvelope,
   buildPostForm,
   type HttpMethodType,
   type Logger,
@@ -345,6 +347,60 @@ export class SAMLIssuer {
       url: result.responseUrl,
       method: "GET",
     };
+  }
+
+  /**
+   * Process SOAP LogoutRequest and build SOAP response
+   * @param soapEnvelope - Raw SOAP envelope XML
+   * @param sessionId - Session ID for restoring session state
+   * @returns SOAP response envelope as string
+   */
+  async processSoapLogout(
+    soapEnvelope: string,
+    sessionId?: string,
+  ): Promise<string> {
+    // Extract SAML message from SOAP envelope
+    const samlMessage = extractSamlFromSoap(soapEnvelope);
+    if (!samlMessage) {
+      throw new Error("No SAML message found in SOAP envelope");
+    }
+
+    this.logger.debug(
+      `SAML Issuer: Processing SOAP logout, message length: ${samlMessage.length}`,
+    );
+
+    const server = this.serverManager.getServer();
+    const logout = new Logout(server);
+
+    // Restore session if available
+    if (sessionId) {
+      const samlSession = await this.config.getSAMLSession?.(sessionId);
+      if (samlSession?._lassoSessionDump) {
+        logout.session = Session.fromDump(samlSession._lassoSessionDump);
+      }
+    }
+
+    // Process the logout request with SOAP method
+    logout.processRequestMsg(samlMessage, HttpMethod.SOAP);
+    logout.validateRequest();
+
+    const providerEntityId = logout.remoteProviderId || "";
+    this.logger.info(
+      `SAML Issuer: SOAP LogoutRequest from ${providerEntityId}`,
+    );
+
+    // Build the response
+    const result = logout.buildResponseMsg();
+
+    // Get the SAML response body
+    const samlResponse = result.responseBody || "";
+
+    this.logger.info(
+      `SAML Issuer: Built SOAP LogoutResponse for ${providerEntityId}`,
+    );
+
+    // Wrap in SOAP envelope
+    return wrapInSoapEnvelope(samlResponse);
   }
 
   /**

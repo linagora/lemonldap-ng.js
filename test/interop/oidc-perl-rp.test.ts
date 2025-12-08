@@ -767,3 +767,162 @@ describe("OIDC Interop: Metadata Compatibility", () => {
     expect(metadata.code_challenge_methods_supported).toContain("S256");
   });
 });
+
+describe("OIDC Interop: Logout (End Session)", () => {
+  it("should have end_session_endpoint in discovery metadata", async () => {
+    if (!dockerAvailable) return;
+
+    const response = await httpGet(
+      `${JS_OP_URL}/.well-known/openid-configuration`,
+    );
+    const metadata = JSON.parse(response.body);
+
+    expect(metadata.end_session_endpoint).toBeDefined();
+    expect(metadata.end_session_endpoint).toContain("/logout");
+  });
+
+  it("should accept logout request without parameters", async () => {
+    if (!dockerAvailable) return;
+
+    const response = await httpGet(`${JS_OP_URL}/oauth2/logout`);
+
+    // Without post_logout_redirect_uri, should return 200 or show a logout page
+    expect([200, 302]).toContain(response.status);
+  });
+
+  it("should accept logout request with id_token_hint", async () => {
+    if (!dockerAvailable) return;
+
+    // First get an ID token
+    const authUrl = new URL(`${JS_OP_URL}/oauth2/authorize`);
+    authUrl.searchParams.set("client_id", CLIENT_ID);
+    authUrl.searchParams.set(
+      "redirect_uri",
+      `${PERL_RP_URL}/?openidconnectcallback=1`,
+    );
+    authUrl.searchParams.set("response_type", "code");
+    authUrl.searchParams.set("scope", "openid");
+    authUrl.searchParams.set("state", "test-logout-state");
+
+    const authResponse = await httpGet(authUrl.toString());
+    const redirectUrl = new URL(authResponse.location!);
+    const code = redirectUrl.searchParams.get("code");
+
+    const tokenResponse = await httpPost(
+      `${JS_OP_URL}/oauth2/token`,
+      new URLSearchParams({
+        grant_type: "authorization_code",
+        code: code!,
+        redirect_uri: `${PERL_RP_URL}/?openidconnectcallback=1`,
+        client_id: CLIENT_ID,
+        client_secret: CLIENT_SECRET,
+      }),
+    );
+
+    const tokens = JSON.parse(tokenResponse.body);
+
+    // Now test logout with id_token_hint
+    const logoutUrl = new URL(`${JS_OP_URL}/oauth2/logout`);
+    logoutUrl.searchParams.set("id_token_hint", tokens.id_token);
+
+    const logoutResponse = await httpGet(logoutUrl.toString());
+
+    // Should accept the logout request
+    expect([200, 302]).toContain(logoutResponse.status);
+  });
+
+  it("should redirect to post_logout_redirect_uri when valid", async () => {
+    if (!dockerAvailable) return;
+
+    // First get an ID token
+    const authUrl = new URL(`${JS_OP_URL}/oauth2/authorize`);
+    authUrl.searchParams.set("client_id", CLIENT_ID);
+    authUrl.searchParams.set(
+      "redirect_uri",
+      `${PERL_RP_URL}/?openidconnectcallback=1`,
+    );
+    authUrl.searchParams.set("response_type", "code");
+    authUrl.searchParams.set("scope", "openid");
+    authUrl.searchParams.set("state", "test-logout-redirect");
+
+    const authResponse = await httpGet(authUrl.toString());
+    const redirectUrl = new URL(authResponse.location!);
+    const code = redirectUrl.searchParams.get("code");
+
+    const tokenResponse = await httpPost(
+      `${JS_OP_URL}/oauth2/token`,
+      new URLSearchParams({
+        grant_type: "authorization_code",
+        code: code!,
+        redirect_uri: `${PERL_RP_URL}/?openidconnectcallback=1`,
+        client_id: CLIENT_ID,
+        client_secret: CLIENT_SECRET,
+      }),
+    );
+
+    const tokens = JSON.parse(tokenResponse.body);
+
+    // Test logout with post_logout_redirect_uri and state
+    const logoutUrl = new URL(`${JS_OP_URL}/oauth2/logout`);
+    logoutUrl.searchParams.set("id_token_hint", tokens.id_token);
+    logoutUrl.searchParams.set("post_logout_redirect_uri", `${PERL_RP_URL}/`);
+    logoutUrl.searchParams.set("state", "logout-state-123");
+
+    const logoutResponse = await httpGet(logoutUrl.toString());
+
+    // Should redirect to the post_logout_redirect_uri
+    expect(logoutResponse.status).toBe(302);
+    expect(logoutResponse.location).toBeDefined();
+    if (logoutResponse.location) {
+      const logoutRedirect = new URL(logoutResponse.location);
+      expect(logoutRedirect.origin + logoutRedirect.pathname).toBe(
+        `${PERL_RP_URL}/`,
+      );
+      expect(logoutRedirect.searchParams.get("state")).toBe("logout-state-123");
+    }
+  });
+
+  it("should handle POST logout request", async () => {
+    if (!dockerAvailable) return;
+
+    // First get an ID token
+    const authUrl = new URL(`${JS_OP_URL}/oauth2/authorize`);
+    authUrl.searchParams.set("client_id", CLIENT_ID);
+    authUrl.searchParams.set(
+      "redirect_uri",
+      `${PERL_RP_URL}/?openidconnectcallback=1`,
+    );
+    authUrl.searchParams.set("response_type", "code");
+    authUrl.searchParams.set("scope", "openid");
+    authUrl.searchParams.set("state", "test-logout-post");
+
+    const authResponse = await httpGet(authUrl.toString());
+    const redirectUrl = new URL(authResponse.location!);
+    const code = redirectUrl.searchParams.get("code");
+
+    const tokenResponse = await httpPost(
+      `${JS_OP_URL}/oauth2/token`,
+      new URLSearchParams({
+        grant_type: "authorization_code",
+        code: code!,
+        redirect_uri: `${PERL_RP_URL}/?openidconnectcallback=1`,
+        client_id: CLIENT_ID,
+        client_secret: CLIENT_SECRET,
+      }),
+    );
+
+    const tokens = JSON.parse(tokenResponse.body);
+
+    // Test POST logout
+    const logoutResponse = await httpPost(
+      `${JS_OP_URL}/oauth2/logout`,
+      new URLSearchParams({
+        id_token_hint: tokens.id_token,
+        post_logout_redirect_uri: `${PERL_RP_URL}/`,
+      }),
+    );
+
+    // Should redirect to the post_logout_redirect_uri
+    expect(logoutResponse.status).toBe(302);
+  });
+});

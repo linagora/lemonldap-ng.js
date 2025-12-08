@@ -31,6 +31,10 @@ export {
   escapeXml,
   buildUrl,
   parseQueryString,
+  // SOAP utilities
+  extractSamlFromSoap,
+  wrapInSoapEnvelope,
+  isSoapEnvelope,
 } from "./utils";
 
 // Export lasso loader utilities
@@ -44,6 +48,11 @@ export {
   SignatureMethod,
   NameIdFormat,
   AuthnContext,
+  // Runtime class wrappers
+  Login,
+  Logout,
+  Identity,
+  Session,
 } from "./lasso-loader";
 
 // Re-export lasso types with full names
@@ -56,9 +65,3 @@ export type {
   HttpMethodType,
   SignatureMethodType,
 } from "./lasso-loader";
-
-// Backward-compatible type aliases (without Lasso prefix)
-export type { LassoLogin as Login } from "./lasso-loader";
-export type { LassoLogout as Logout } from "./lasso-loader";
-export type { LassoIdentity as Identity } from "./lasso-loader";
-export type { LassoSession as Session } from "./lasso-loader";

@@ -169,3 +169,246 @@ export const AuthnContext = {
   SMARTCARD: "urn:oasis:names:tc:SAML:2.0:ac:classes:Smartcard",
   KERBEROS: "urn:oasis:names:tc:SAML:2.0:ac:classes:Kerberos",
 } as const;
+
+/**
+ * Runtime class wrappers that delegate to lasso.js classes
+ * These allow using Login, Logout, Identity, Session as values
+ * while keeping lasso.js as an optional dependency
+ */
+
+/**
+ * Login class wrapper - delegates to lasso.js Login
+ */
+export class Login {
+  private _login: LassoLogin;
+
+  constructor(server: LassoServer) {
+    const lasso = getLasso();
+    this._login = new lasso.Login(server);
+  }
+
+  processAuthnRequestMsg(message: string, method: HttpMethodType): void {
+    // Cast method to any to bridge our const type with lasso.js enum
+    this._login.processAuthnRequestMsg(message, method as number);
+  }
+
+  validateRequestMsg(): void {
+    this._login.validateRequestMsg();
+  }
+
+  setNameId(nameId: string, format: NameIdFormatType): void {
+    this._login.setNameId(nameId, format);
+  }
+
+  setAttributes(attributes: SamlAttribute[]): void {
+    this._login.setAttributes(attributes);
+  }
+
+  buildAssertion(authnContext: string, authTime: string): void {
+    this._login.buildAssertion(authnContext, authTime);
+  }
+
+  buildResponseMsg(): MessageResult {
+    return this._login.buildResponseMsg();
+  }
+
+  get remoteProviderId(): string | undefined {
+    return this._login.remoteProviderId ?? undefined;
+  }
+
+  get nameIdFormat(): string | undefined {
+    return this._login.nameIdFormat ?? undefined;
+  }
+
+  get identity(): Identity | undefined {
+    const ident = this._login.identity;
+    if (!ident) return undefined;
+    // Wrap in our Identity class
+    return Identity._fromLasso(ident);
+  }
+
+  set identity(value: Identity | LassoIdentity | undefined) {
+    if (!value) {
+      this._login.identity = null;
+    } else if (value instanceof Identity) {
+      this._login.identity = value.inner;
+    } else {
+      this._login.identity = value;
+    }
+  }
+
+  get session(): Session | undefined {
+    const sess = this._login.session;
+    if (!sess) return undefined;
+    // Wrap in our Session class
+    return Session._fromLasso(sess);
+  }
+
+  set session(value: Session | LassoSession | undefined) {
+    if (!value) {
+      this._login.session = null;
+    } else if (value instanceof Session) {
+      this._login.session = value.inner;
+    } else {
+      this._login.session = value;
+    }
+  }
+}
+
+/**
+ * Logout class wrapper - delegates to lasso.js Logout
+ */
+export class Logout {
+  private _logout: LassoLogout;
+
+  constructor(server: LassoServer) {
+    const lasso = getLasso();
+    this._logout = new lasso.Logout(server);
+  }
+
+  processRequestMsg(message: string, method: HttpMethodType): void {
+    // Cast method to number to bridge our const type with lasso.js enum
+    this._logout.processRequestMsg(message, method as number);
+  }
+
+  processResponseMsg(message: string): void {
+    this._logout.processResponseMsg(message);
+  }
+
+  validateRequest(): void {
+    this._logout.validateRequest();
+  }
+
+  initRequest(providerId: string, method: HttpMethodType): void {
+    // Cast method to number to bridge our const type with lasso.js enum
+    this._logout.initRequest(providerId, method as number);
+  }
+
+  buildRequestMsg(): MessageResult {
+    return this._logout.buildRequestMsg();
+  }
+
+  buildResponseMsg(): MessageResult {
+    return this._logout.buildResponseMsg();
+  }
+
+  getNextProviderId(): string | null {
+    return this._logout.getNextProviderId();
+  }
+
+  get remoteProviderId(): string | undefined {
+    // Access via any to handle potential type mismatch
+    return (this._logout as { remoteProviderId?: string }).remoteProviderId;
+  }
+
+  get identity(): Identity | undefined {
+    const ident = this._logout.identity;
+    if (!ident) return undefined;
+    return Identity._fromLasso(ident);
+  }
+
+  set identity(value: Identity | LassoIdentity | undefined) {
+    if (!value) {
+      this._logout.identity = null;
+    } else if (value instanceof Identity) {
+      this._logout.identity = value.inner;
+    } else {
+      this._logout.identity = value;
+    }
+  }
+
+  get session(): Session | undefined {
+    const sess = this._logout.session;
+    if (!sess) return undefined;
+    return Session._fromLasso(sess);
+  }
+
+  set session(value: Session | LassoSession | undefined) {
+    if (!value) {
+      this._logout.session = null;
+    } else if (value instanceof Session) {
+      this._logout.session = value.inner;
+    } else {
+      this._logout.session = value;
+    }
+  }
+}
+
+/**
+ * Identity class wrapper - delegates to lasso.js Identity
+ */
+export class Identity {
+  private _identity: LassoIdentity;
+
+  private constructor(identity: LassoIdentity) {
+    this._identity = identity;
+  }
+
+  /**
+   * Create Identity from lasso Identity (internal use)
+   */
+  static _fromLasso(identity: LassoIdentity): Identity {
+    return new Identity(identity);
+  }
+
+  static fromDump(dump: string): Identity {
+    const lasso = getLasso();
+    return new Identity(lasso.Identity.fromDump(dump));
+  }
+
+  dump(): string | null {
+    return this._identity.dump();
+  }
+
+  get isEmpty(): boolean {
+    return this._identity.isEmpty;
+  }
+
+  /**
+   * Get the underlying lasso Identity object
+   */
+  get inner(): LassoIdentity {
+    return this._identity;
+  }
+}
+
+/**
+ * Session class wrapper - delegates to lasso.js Session
+ */
+export class Session {
+  private _session: LassoSession;
+
+  constructor() {
+    const lasso = getLasso();
+    this._session = new lasso.Session();
+  }
+
+  /**
+   * Create Session from lasso Session (internal use)
+   */
+  static _fromLasso(session: LassoSession): Session {
+    const wrapper = Object.create(Session.prototype);
+    wrapper._session = session;
+    return wrapper;
+  }
+
+  static fromDump(dump: string): Session {
+    const lasso = getLasso();
+    return Session._fromLasso(lasso.Session.fromDump(dump));
+  }
+
+  dump(): string | null {
+    return this._session.dump();
+  }
+
+  get isDirty(): boolean {
+    return this._session.isDirty;
+  }
+
+  /**
+   * Get the underlying lasso Session object
+   */
+  get inner(): LassoSession {
+    return this._session;
+  }
+}
