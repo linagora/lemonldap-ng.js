@@ -10,7 +10,11 @@
 export { SAMLIssuer } from "./issuer";
 
 // Export router
-export { createSAMLIssuerRouter, type SAMLRequest } from "./router";
+export {
+  createSAMLIssuerRouter,
+  type SAMLRequest,
+  type SAMLRateLimitConfig,
+} from "./router";
 
 // Export types
 export * from "./types";

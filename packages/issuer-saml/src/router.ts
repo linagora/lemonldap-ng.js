@@ -4,7 +4,13 @@
  * Express router for SAML IdP endpoints.
  */
 
-import type { Router, Request, Response, NextFunction } from "express";
+import type {
+  Router,
+  Request,
+  Response,
+  NextFunction,
+  RequestHandler,
+} from "express";
 import { SAMLIssuer } from "./issuer";
 import type { SAMLIssuerConfig, SSOContext } from "./types";
 
@@ -15,6 +21,51 @@ export interface SAMLRequest extends Request {
   samlContext?: SSOContext;
   samlSessionId?: string;
   samlSession?: Record<string, unknown>;
+}
+
+/**
+ * Rate limiting configuration for SAML router
+ */
+export interface SAMLRateLimitConfig {
+  /** Enable rate limiting (default: false) */
+  enabled?: boolean;
+  /** Max requests per window (default: 100) */
+  max?: number;
+  /** Window duration in milliseconds (default: 60000) */
+  windowMs?: number;
+  /** Skip rate limiting for certain requests */
+  skip?: (req: Request) => boolean;
+}
+
+/**
+ * Create rate limiter middleware (optional dependency)
+ * Always returns a middleware - pass-through when disabled or not available
+ */
+function createRateLimiter(config?: SAMLRateLimitConfig): RequestHandler {
+  // Pass-through middleware when rate limiting is disabled
+  if (!config?.enabled) {
+    return (_req, _res, next) => next();
+  }
+
+  try {
+    const rateLimit =
+      require("express-rate-limit").default || require("express-rate-limit");
+    return rateLimit({
+      windowMs: config.windowMs || 60000,
+      max: config.max || 100,
+      message: "Too many requests, please try again later",
+      standardHeaders: true,
+      legacyHeaders: false,
+      skip: config.skip,
+    });
+  } catch {
+    console.warn(
+      "SAML Router: Rate limiting enabled but 'express-rate-limit' is not installed. " +
+        "Install it with: npm install express-rate-limit",
+    );
+    // Return pass-through middleware when package is not available
+    return (_req, _res, next) => next();
+  }
 }
 
 /**
@@ -31,6 +82,8 @@ export function createSAMLIssuerRouter(
     getSessionData?: (
       sessionId: string,
     ) => Promise<Record<string, unknown> | null>;
+    /** Rate limiting configuration (optional, requires 'express-rate-limit') */
+    rateLimit?: SAMLRateLimitConfig;
   },
 ): Router {
   // Dynamic import of express Router
@@ -39,6 +92,12 @@ export function createSAMLIssuerRouter(
 
   // Ensure body parsing middleware is available
   router.use(express.urlencoded({ extended: true }));
+
+  // Apply rate limiting to sensitive endpoints (always applied, pass-through when disabled)
+  const limiter = createRateLimiter(config.rateLimit);
+  router.use("/singleSignOn", limiter);
+  router.use("/singleLogout", limiter);
+  router.use("/singleLogoutSOAP", limiter);
 
   /**
    * GET /metadata - IdP Metadata
