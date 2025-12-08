@@ -316,3 +316,59 @@ export function parseQueryString(query: string): Record<string, string> {
   }
   return params;
 }
+
+/**
+ * Extract SAML message from SOAP envelope
+ * Supports both LogoutRequest and LogoutResponse
+ */
+export function extractSamlFromSoap(soapEnvelope: string): string | null {
+  // Try to extract LogoutRequest
+  let match = soapEnvelope.match(
+    /<(?:samlp:|)[Ll]ogout[Rr]equest[\s\S]*?<\/(?:samlp:|)[Ll]ogout[Rr]equest>/,
+  );
+  if (match) {
+    return match[0];
+  }
+
+  // Try to extract LogoutResponse
+  match = soapEnvelope.match(
+    /<(?:samlp:|)[Ll]ogout[Rr]esponse[\s\S]*?<\/(?:samlp:|)[Ll]ogout[Rr]esponse>/,
+  );
+  if (match) {
+    return match[0];
+  }
+
+  // Try to extract from SOAP Body
+  match = soapEnvelope.match(
+    /<(?:soap:|SOAP-ENV:|S:|)[Bb]ody[^>]*>([\s\S]*?)<\/(?:soap:|SOAP-ENV:|S:|)[Bb]ody>/,
+  );
+  if (match) {
+    return match[1].trim();
+  }
+
+  return null;
+}
+
+/**
+ * Wrap SAML message in SOAP envelope
+ */
+export function wrapInSoapEnvelope(samlMessage: string): string {
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+  <soap:Body>
+    ${samlMessage}
+  </soap:Body>
+</soap:Envelope>`;
+}
+
+/**
+ * Check if content is a SOAP envelope
+ */
+export function isSoapEnvelope(content: string): boolean {
+  return (
+    content.includes("schemas.xmlsoap.org/soap/envelope") ||
+    content.includes("SOAP-ENV:Envelope") ||
+    content.includes("soap:Envelope") ||
+    content.includes("S:Envelope")
+  );
+}

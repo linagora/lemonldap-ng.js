@@ -160,36 +160,58 @@ export function createSAMLIssuerRouter(
   );
 
   /**
-   * POST /singleLogoutSOAP - SLO endpoint (SOAP)
+   * POST /singleLogoutSOAP - SLO endpoint (SOAP binding)
+   * Expects raw XML SOAP envelope in request body
    */
   router.post(
     "/singleLogoutSOAP",
-    async (req: Request, res: Response, next: NextFunction) => {
+    express.text({ type: ["text/xml", "application/soap+xml"] }),
+    async (req: SAMLRequest, res: Response, _next: NextFunction) => {
       try {
-        // SOAP binding handling
-        const soapBody = req.body;
+        // Get raw SOAP envelope from body
+        const soapEnvelope =
+          typeof req.body === "string" ? req.body : String(req.body);
 
-        // Extract SAML message from SOAP envelope
-        // This is a simplified implementation
-        const context = await issuer.processLogoutRequest({
-          method: "POST",
-          body: { SAMLRequest: soapBody },
-        });
-
-        const response = await issuer.buildLogoutResponse(context);
-
-        // Wrap response in SOAP envelope
-        const soapResponse = `<?xml version="1.0" encoding="UTF-8"?>
+        if (!soapEnvelope || soapEnvelope.length === 0) {
+          res.status(400).set("Content-Type", "text/xml").send(`<?xml version="1.0" encoding="UTF-8"?>
 <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
   <soap:Body>
-    ${response.formData?.SAMLResponse || ""}
+    <soap:Fault>
+      <faultcode>soap:Client</faultcode>
+      <faultstring>Empty SOAP body</faultstring>
+    </soap:Fault>
   </soap:Body>
-</soap:Envelope>`;
+</soap:Envelope>`);
+          return;
+        }
+
+        // Get session ID if available
+        const sessionId = config.getSessionId?.(req) || undefined;
+
+        // Process SOAP logout and get SOAP response
+        const soapResponse = await issuer.processSoapLogout(
+          soapEnvelope,
+          sessionId,
+        );
 
         res.set("Content-Type", "text/xml");
         res.send(soapResponse);
       } catch (err) {
-        next(err);
+        // Return SOAP fault on error
+        const errorMessage =
+          err instanceof Error ? err.message : "Unknown error";
+        res
+          .status(500)
+          .set("Content-Type", "text/xml")
+          .send(`<?xml version="1.0" encoding="UTF-8"?>
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+  <soap:Body>
+    <soap:Fault>
+      <faultcode>soap:Server</faultcode>
+      <faultstring>${errorMessage.replace(/[<>&"']/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;", "'": "&apos;" })[c] || c)}</faultstring>
+    </soap:Fault>
+  </soap:Body>
+</soap:Envelope>`);
       }
     },
   );
