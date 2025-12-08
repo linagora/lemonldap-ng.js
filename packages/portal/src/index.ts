@@ -6,7 +6,7 @@ import {
   authMiddleware,
   userDBMiddleware,
 } from "./middleware";
-import { createRoutes } from "./routes";
+import { createRoutes, create2FARoutes } from "./routes";
 import type { PortalOptions } from "./types";
 
 export { Portal } from "./portal";
@@ -64,6 +64,11 @@ export function middleware(portal?: Portal): Router {
 
   // Portal routes
   router.use(createRoutes(p));
+
+  // 2FA routes (if enabled)
+  if (p.has2FA()) {
+    router.use(create2FARoutes(p));
+  }
 
   return router;
 }
