@@ -267,11 +267,22 @@ class LemonldapNGHandler extends HandlerInit {
           `No configuration found for ${vhost} (or not listed in Node.js virtualHosts)`,
         );
       }
-      if (this.tsv.locationRegexp[vhost]) {
+      // Validate locationRegexp exists as own property before accessing
+      if (
+        Object.prototype.hasOwnProperty.call(this.tsv.locationRegexp, vhost) &&
+        this.tsv.locationRegexp[vhost]
+      ) {
         for (let i = 0; i < this.tsv.locationRegexp[vhost].length; i++) {
           const regex = this.tsv.locationRegexp[vhost][i];
           if (regex.test(uri)) {
-            return resolve(this.tsv.locationCondition[vhost][i](req, session));
+            // Validate condition function exists before calling
+            const conditionFn = this.tsv.locationCondition[vhost]?.[i];
+            if (typeof conditionFn !== "function") {
+              return reject(
+                `Invalid location condition for ${vhost} at index ${i}`,
+              );
+            }
+            return resolve(conditionFn(req, session));
           }
         }
       }
