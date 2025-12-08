@@ -267,9 +267,12 @@ class LemonldapNGHandler extends HandlerInit {
           }
         }
       }
-      this.tsv.defaultCondition[vhost](req, session)
-        ? resolve(true)
-        : reject("Unauthorized");
+      // Validate vhost exists in defaultCondition before calling
+      const defaultConditionFn = this.tsv.defaultCondition[vhost];
+      if (typeof defaultConditionFn !== "function") {
+        return reject(`No default condition for vhost: ${vhost}`);
+      }
+      defaultConditionFn(req, session) ? resolve(true) : reject("Unauthorized");
     });
   }
 
