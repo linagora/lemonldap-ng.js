@@ -13,9 +13,15 @@ class RedisSession implements Session_Accessor {
   constructor(args: SessionRedis_Args) {
     if (!args.server) args.server = "localhost";
     let port = 6379;
-    if (args.server.match(/(.*?):(\d+)/)) {
-      args.server = RegExp.$1;
-      port = parseInt(RegExp.$2);
+    // Parse host:port format without regex to avoid ReDoS
+    const colonIndex = args.server.lastIndexOf(":");
+    if (colonIndex > 0) {
+      const portStr = args.server.substring(colonIndex + 1);
+      const parsedPort = parseInt(portStr, 10);
+      if (!isNaN(parsedPort) && parsedPort > 0 && parsedPort <= 65535) {
+        args.server = args.server.substring(0, colonIndex);
+        port = parsedPort;
+      }
     }
     let url = "redis://";
     if (args.user) {

@@ -69,10 +69,21 @@ class Session {
   }
 
   aliases(type: string) {
-    return type
-      .toLowerCase()
-      .replace(/.*apache::session::(?:browseable::)?/, "")
-      .replace(/(?:pghstore|pgjson)/, "postgres");
+    // Normalize session type names without complex regex to avoid ReDoS
+    let normalized = type.toLowerCase();
+    // Remove Apache::Session:: prefix variants
+    const prefixes = ["apache::session::browseable::", "apache::session::"];
+    for (const prefix of prefixes) {
+      if (normalized.startsWith(prefix)) {
+        normalized = normalized.substring(prefix.length);
+        break;
+      }
+    }
+    // Map PostgreSQL variants
+    if (normalized === "pghstore" || normalized === "pgjson") {
+      normalized = "postgres";
+    }
+    return normalized;
   }
 
   get(id: string) {
