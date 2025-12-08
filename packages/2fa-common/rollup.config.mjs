@@ -3,35 +3,15 @@ import { nodeResolve } from "@rollup/plugin-node-resolve";
 import typescript from "@rollup/plugin-typescript";
 import terser from "@rollup/plugin-terser";
 import cleaner from "rollup-plugin-cleaner";
-import { cpSync, mkdirSync } from "fs";
 
 const alwaysExt = [
-  "@lemonldap-ng/2fa-common",
-  "@lemonldap-ng/2fa-totp",
-  "@lemonldap-ng/conf",
-  "@lemonldap-ng/crypto",
-  "@lemonldap-ng/logger",
-  "@lemonldap-ng/session",
+  "@lemonldap-ng/portal",
   "@lemonldap-ng/types",
+  "@lemonldap-ng/crypto",
   "express",
-  "cookie-parser",
-  "nunjucks",
-  "crypto",
-  "path",
 ];
 
-// Copy template files
-function copyTemplates() {
-  return {
-    name: "copy-templates",
-    buildEnd() {
-      mkdirSync("lib/templates/views", { recursive: true });
-      cpSync("src/templates/views", "lib/templates/views", { recursive: true });
-    },
-  };
-}
-
-const commonPlugins = [typescript(), commonjs(), copyTemplates()];
+const commonPlugins = [typescript(), commonjs()];
 
 function configure(esm) {
   return {

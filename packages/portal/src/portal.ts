@@ -10,6 +10,7 @@ import type {
   PasswordModule,
 } from "./types";
 import { TemplateEngine } from "./templates/engine";
+import { TwoFactorManager } from "./2fa";
 
 /**
  * Main Portal class
@@ -24,6 +25,7 @@ export class Portal {
   private userDBModule: UserDBModule | null = null;
   private passwordModule: PasswordModule | null = null;
   private templateEngine: TemplateEngine | null = null;
+  private twoFactorManager: TwoFactorManager | null = null;
   private options: PortalOptions;
 
   public ready: Promise<boolean>;
@@ -76,6 +78,10 @@ export class Portal {
         `Portal initialized with auth=${authType}, userDB=${userDBType}`,
       );
     }
+
+    // Initialize 2FA manager
+    this.twoFactorManager = new TwoFactorManager(this.conf, logger);
+    await this.twoFactorManager.init();
 
     return true;
   }
@@ -171,6 +177,21 @@ export class Portal {
    */
   hasPasswordModule(): boolean {
     return this.passwordModule !== null;
+  }
+
+  /**
+   * Get 2FA manager
+   */
+  getTwoFactorManager(): TwoFactorManager {
+    if (!this.twoFactorManager) throw new Error("2FA Manager not initialized");
+    return this.twoFactorManager;
+  }
+
+  /**
+   * Check if 2FA is enabled
+   */
+  has2FA(): boolean {
+    return this.twoFactorManager?.is2FAEnabled() ?? false;
   }
 
   /**
