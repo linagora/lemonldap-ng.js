@@ -179,6 +179,22 @@ export class OIDCProvider {
   }
 
   /**
+   * Get rate limit configuration from global portal config
+   */
+  getRateLimitConfig(): {
+    enabled: boolean;
+    max: number;
+    windowMs: number;
+  } {
+    return {
+      enabled: this.config.portalRateLimit || false,
+      max: this.config.portalRateLimitMax || 100,
+      // Config uses seconds, express-rate-limit uses milliseconds
+      windowMs: (this.config.portalRateLimitWindow || 60) * 1000,
+    };
+  }
+
+  /**
    * Get RP configuration by client_id
    */
   getRP(clientId: string): OIDCRPOptions | null {

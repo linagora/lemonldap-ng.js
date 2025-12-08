@@ -347,6 +347,17 @@ export interface OIDCProviderConfig extends OIDCServiceConfig {
     options: OIDCRPOptions,
     exportedVars?: OIDCRPExportedVars,
   ) => Promise<boolean>;
+
+  /**
+   * Rate Limiting (portal-wide, requires express-rate-limit)
+   * These parameters mirror LLNG_Conf_Extended for global portal config
+   */
+  /** Enable rate limiting (default: false) */
+  portalRateLimit?: boolean;
+  /** Max requests per window (default: 100) */
+  portalRateLimitMax?: number;
+  /** Window duration in seconds (default: 60) */
+  portalRateLimitWindow?: number;
 }
 
 /**
