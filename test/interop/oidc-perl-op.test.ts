@@ -459,9 +459,7 @@ describe("OIDC Interop: Logout (End Session)", () => {
 
     // Get logout URL with post_logout_redirect_uri
     const postLogoutUrl = "http://localhost:3000/logged-out";
-    const logoutUrl = await auth.getLogoutUrl("perl-op", {
-      post_logout_redirect_uri: postLogoutUrl,
-    });
+    const logoutUrl = auth.getLogoutUrl("perl-op", undefined, postLogoutUrl);
 
     expect(logoutUrl).toBeDefined();
     expect(logoutUrl).toContain(PERL_OP_URL);
