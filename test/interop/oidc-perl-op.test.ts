@@ -22,9 +22,9 @@ const JS_CALLBACK_URL = "http://localhost:19876/?oidccallback=1";
 const CLIENT_ID = "llngjs";
 const CLIENT_SECRET = "llngjspwd";
 
-// Demo users in Perl portal
-const TEST_USER = "dwho";
-const TEST_PASSWORD = "dwho";
+// Demo users in Perl portal (for future full flow tests)
+const _TEST_USER = "dwho";
+const _TEST_PASSWORD = "dwho";
 
 /**
  * Simple HTTP client for testing
@@ -366,5 +366,107 @@ describe("OIDC Interop: Metadata Compatibility", () => {
 
     // Must support public subject type
     expect(metadata.subject_types_supported).toContain("public");
+  });
+});
+
+describe("OIDC Interop: Logout (End Session)", () => {
+  it("should have end_session_endpoint in discovery metadata", async () => {
+    if (!dockerAvailable) return;
+
+    const response = await httpGet(
+      `${PERL_OP_URL}/.well-known/openid-configuration`,
+    );
+    const metadata = JSON.parse(response.body);
+
+    expect(metadata.end_session_endpoint).toBeDefined();
+    expect(metadata.end_session_endpoint).toContain(PERL_OP_URL);
+  });
+
+  it("should accept logout request without parameters", async () => {
+    if (!dockerAvailable) return;
+
+    const response = await httpGet(`${PERL_OP_URL}/oauth2/logout`);
+
+    // Without id_token_hint, should return 200 or redirect
+    expect([200, 302, 303]).toContain(response.status);
+  });
+
+  it("OIDCAuth should be able to get logout URL", async () => {
+    if (!dockerAvailable) return;
+
+    const { OIDCAuth } = await import("../../packages/auth-oidc/src/auth");
+
+    const auth = new OIDCAuth({
+      oidcOPMetaData: {
+        "perl-op": {
+          confKey: "perl-op",
+          oidcOPMetaDataOptions: {
+            oidcOPMetaDataOptionsClientID: CLIENT_ID,
+            oidcOPMetaDataOptionsClientSecret: CLIENT_SECRET,
+            oidcOPMetaDataOptionsConfigurationURI: `${PERL_OP_URL}/.well-known/openid-configuration`,
+            oidcOPMetaDataOptionsScope: "openid profile email",
+          },
+          oidcOPMetaDataExportedVars: {},
+        },
+      },
+      logger: {
+        error: () => {},
+        warn: () => {},
+        notice: () => {},
+        info: () => {},
+        debug: () => {},
+      },
+    });
+
+    await auth.init();
+
+    // Get logout URL
+    const logoutUrl = await auth.getLogoutUrl("perl-op");
+
+    expect(logoutUrl).toBeDefined();
+    expect(logoutUrl).toContain(PERL_OP_URL);
+    expect(logoutUrl).toContain("logout");
+  });
+
+  it("OIDCAuth should build logout URL with post_logout_redirect_uri", async () => {
+    if (!dockerAvailable) return;
+
+    const { OIDCAuth } = await import("../../packages/auth-oidc/src/auth");
+
+    const auth = new OIDCAuth({
+      oidcOPMetaData: {
+        "perl-op": {
+          confKey: "perl-op",
+          oidcOPMetaDataOptions: {
+            oidcOPMetaDataOptionsClientID: CLIENT_ID,
+            oidcOPMetaDataOptionsClientSecret: CLIENT_SECRET,
+            oidcOPMetaDataOptionsConfigurationURI: `${PERL_OP_URL}/.well-known/openid-configuration`,
+            oidcOPMetaDataOptionsScope: "openid profile email",
+          },
+          oidcOPMetaDataExportedVars: {},
+        },
+      },
+      logger: {
+        error: () => {},
+        warn: () => {},
+        notice: () => {},
+        info: () => {},
+        debug: () => {},
+      },
+    });
+
+    await auth.init();
+
+    // Get logout URL with post_logout_redirect_uri
+    const postLogoutUrl = "http://localhost:3000/logged-out";
+    const logoutUrl = await auth.getLogoutUrl("perl-op", {
+      post_logout_redirect_uri: postLogoutUrl,
+    });
+
+    expect(logoutUrl).toBeDefined();
+    expect(logoutUrl).toContain(PERL_OP_URL);
+
+    const url = new URL(logoutUrl!);
+    expect(url.searchParams.get("post_logout_redirect_uri")).toBe(postLogoutUrl);
   });
 });

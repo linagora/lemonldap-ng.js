@@ -5,11 +5,7 @@
  * Handles initialization, provider registration, and server lifecycle.
  */
 
-import {
-  loadLasso,
-  type LassoServer,
-  type ProviderInfo,
-} from "./lasso-loader";
+import { loadLasso, type LassoServer, type ProviderInfo } from "./lasso-loader";
 
 import type { Logger, SAMLServiceConfig } from "./types";
 
