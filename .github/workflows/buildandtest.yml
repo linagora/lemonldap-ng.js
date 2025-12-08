@@ -120,7 +120,6 @@ jobs:
 
   interop-tests:
     runs-on: ubuntu-22.04
-    needs: build-and-test
     steps:
       - uses: actions/checkout@v3
 
