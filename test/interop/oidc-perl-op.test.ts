@@ -467,6 +467,8 @@ describe("OIDC Interop: Logout (End Session)", () => {
     expect(logoutUrl).toContain(PERL_OP_URL);
 
     const url = new URL(logoutUrl!);
-    expect(url.searchParams.get("post_logout_redirect_uri")).toBe(postLogoutUrl);
+    expect(url.searchParams.get("post_logout_redirect_uri")).toBe(
+      postLogoutUrl,
+    );
   });
 });

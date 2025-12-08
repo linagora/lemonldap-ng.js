@@ -173,7 +173,8 @@ export function createSAMLIssuerRouter(
           typeof req.body === "string" ? req.body : String(req.body);
 
         if (!soapEnvelope || soapEnvelope.length === 0) {
-          res.status(400).set("Content-Type", "text/xml").send(`<?xml version="1.0" encoding="UTF-8"?>
+          res.status(400).set("Content-Type", "text/xml")
+            .send(`<?xml version="1.0" encoding="UTF-8"?>
 <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
   <soap:Body>
     <soap:Fault>
@@ -200,9 +201,7 @@ export function createSAMLIssuerRouter(
         // Return SOAP fault on error
         const errorMessage =
           err instanceof Error ? err.message : "Unknown error";
-        res
-          .status(500)
-          .set("Content-Type", "text/xml")
+        res.status(500).set("Content-Type", "text/xml")
           .send(`<?xml version="1.0" encoding="UTF-8"?>
 <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
   <soap:Body>
