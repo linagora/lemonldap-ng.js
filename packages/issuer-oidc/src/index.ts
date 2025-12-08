@@ -18,7 +18,11 @@
 export { OIDCProvider } from "./provider";
 
 // Router
-export { createOIDCRouter, OIDCRouterOptions } from "./router";
+export {
+  createOIDCRouter,
+  OIDCRouterOptions,
+  RateLimitOptions,
+} from "./router";
 
 // Types
 export {
