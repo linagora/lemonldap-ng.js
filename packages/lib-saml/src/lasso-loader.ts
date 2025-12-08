@@ -212,8 +212,65 @@ export class Login {
     return this._login.buildResponseMsg();
   }
 
+  // SP methods
+
+  /**
+   * Initialize an AuthnRequest (SP)
+   * @param providerId - Target IdP entity ID (optional)
+   * @param method - HTTP method to use (optional)
+   */
+  initAuthnRequest(providerId?: string, method?: HttpMethodType): void {
+    this._login.initAuthnRequest(providerId, method as number);
+  }
+
+  /**
+   * Build the AuthnRequest message (SP)
+   */
+  buildAuthnRequestMsg(): MessageResult {
+    return this._login.buildAuthnRequestMsg();
+  }
+
+  /**
+   * Process a SAML Response (SP)
+   * @param message - The SAML Response
+   */
+  processResponseMsg(message: string): void {
+    this._login.processResponseMsg(message);
+  }
+
+  /**
+   * Accept the SSO (SP)
+   */
+  acceptSso(): void {
+    this._login.acceptSso();
+  }
+
   get remoteProviderId(): string | undefined {
     return this._login.remoteProviderId ?? undefined;
+  }
+
+  /** Name ID from assertion */
+  get nameId(): string | undefined {
+    return this._login.nameId ?? undefined;
+  }
+
+  /** RelayState value */
+  get relayState(): string | undefined {
+    return this._login.relayState ?? undefined;
+  }
+
+  set relayState(value: string | undefined) {
+    this._login.relayState = value ?? null;
+  }
+
+  /** Message URL after building */
+  get msgUrl(): string | undefined {
+    return this._login.msgUrl ?? undefined;
+  }
+
+  /** Message body after building */
+  get msgBody(): string | undefined {
+    return this._login.msgBody ?? undefined;
   }
 
   get nameIdFormat(): string | undefined {
