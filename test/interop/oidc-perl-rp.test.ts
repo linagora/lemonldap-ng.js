@@ -236,6 +236,9 @@ beforeAll(async () => {
         oidcRPMetaDataOptionsIDTokenExpiration: 3600,
         oidcRPMetaDataOptionsAccessTokenExpiration: 3600,
         oidcRPMetaDataOptionsIDTokenSignAlg: "RS256",
+        oidcRPMetaDataOptionsPostLogoutRedirectUris: [`${PERL_RP_URL}/`],
+        oidcRPMetaDataOptionsLogoutType: "back",
+        oidcRPMetaDataOptionsBackChannelLogoutURI: `${PERL_RP_URL}/blogout`,
       },
     },
     oidcRPMetaDataExportedVars: {
