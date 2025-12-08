@@ -1383,6 +1383,8 @@ export class OIDCProvider {
     errorCode?: number;
     rp?: OIDCRPOptions;
     bypassConfirm?: boolean;
+    /** The validated redirect URI (from allowlist), use this for redirects */
+    validatedRedirectUri?: string;
   } {
     const { post_logout_redirect_uri, id_token_hint, client_id } = params;
 
@@ -1461,6 +1463,7 @@ export class OIDCProvider {
       valid: true,
       rp,
       bypassConfirm: rp.oidcRPMetaDataOptionsLogoutBypassConfirm,
+      validatedRedirectUri: post_logout_redirect_uri,
     };
   }
 

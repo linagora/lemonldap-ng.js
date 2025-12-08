@@ -74,14 +74,16 @@ export interface OIDCRouterOptions {
 }
 
 /**
- * Try to load express-rate-limit (optional dependency)
+ * Create rate limiter middleware (optional dependency)
+ * Always returns a middleware - pass-through when disabled or not available
  */
-function tryLoadRateLimiter(
+function createRateLimiter(
   providerConfig: { enabled: boolean; max: number; windowMs: number },
   routerOptions?: RateLimitOptions,
-): RequestHandler | null {
+): RequestHandler {
+  // Pass-through middleware when rate limiting is disabled
   if (!providerConfig.enabled) {
-    return null;
+    return (_req, _res, next) => next();
   }
 
   try {
@@ -103,7 +105,8 @@ function tryLoadRateLimiter(
       "OIDC Router: Rate limiting enabled but 'express-rate-limit' is not installed. " +
         "Install it with: npm install express-rate-limit",
     );
-    return null;
+    // Return pass-through middleware when package is not available
+    return (_req, _res, next) => next();
   }
 }
 
@@ -119,19 +122,15 @@ export function createOIDCRouter(options: OIDCRouterOptions): Router {
     console.error("Failed to initialize OIDC provider:", err);
   });
 
-  // Apply rate limiting from global portal config
+  // Apply rate limiting to sensitive endpoints (always applied, pass-through when disabled)
   const rateLimitConfig = provider.getRateLimitConfig();
-  if (rateLimitConfig.enabled) {
-    const limiter = tryLoadRateLimiter(rateLimitConfig, rateLimitOptions);
-    if (limiter) {
-      // Apply rate limiting to sensitive endpoints
-      router.use("/token", limiter);
-      router.use("/authorize", limiter);
-      router.use("/userinfo", limiter);
-      router.use("/introspect", limiter);
-      router.use("/register", limiter);
-    }
-  }
+  const limiter = createRateLimiter(rateLimitConfig, rateLimitOptions);
+  router.use("/token", limiter);
+  router.use("/authorize", limiter);
+  router.use("/userinfo", limiter);
+  router.use("/introspect", limiter);
+  router.use("/register", limiter);
+  router.use("/logout", limiter);
 
   // Discovery endpoint
   router.get(
@@ -578,22 +577,26 @@ async function handleEndSession(
     return;
   }
 
+  // Use the validated redirect URI (from allowlist) for redirects
+  // This ensures we only redirect to URIs that are explicitly registered
+  const safeRedirectUri = validation.validatedRedirectUri;
+
   // If bypassConfirm is true and redirect URI is valid, redirect directly
-  if (validation.bypassConfirm && postLogoutRedirectUri) {
+  if (validation.bypassConfirm && safeRedirectUri) {
     const redirectUrl = state
-      ? `${postLogoutRedirectUri}${postLogoutRedirectUri.includes("?") ? "&" : "?"}state=${encodeURIComponent(state)}`
-      : postLogoutRedirectUri;
+      ? `${safeRedirectUri}${safeRedirectUri.includes("?") ? "&" : "?"}state=${encodeURIComponent(state)}`
+      : safeRedirectUri;
     res.redirect(redirectUrl);
     return;
   }
 
   // Show logout confirmation or proceed with logout
   if (renderLogout) {
-    renderLogout(req, res, postLogoutRedirectUri);
-  } else if (postLogoutRedirectUri) {
+    renderLogout(req, res, safeRedirectUri);
+  } else if (safeRedirectUri) {
     const redirectUrl = state
-      ? `${postLogoutRedirectUri}${postLogoutRedirectUri.includes("?") ? "&" : "?"}state=${encodeURIComponent(state)}`
-      : postLogoutRedirectUri;
+      ? `${safeRedirectUri}${safeRedirectUri.includes("?") ? "&" : "?"}state=${encodeURIComponent(state)}`
+      : safeRedirectUri;
     res.redirect(redirectUrl);
   } else {
     res.status(200).send("Logged out");
