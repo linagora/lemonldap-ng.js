@@ -1,5 +1,11 @@
 import type { Request } from "express";
 import type { LLNG_Conf, LLNG_Session, LLNG_Logger } from "@lemonldap-ng/types";
+import type {
+  SecondFactorModule,
+  SecondFactorRegisterModule,
+  TwoFactorChallenge,
+  VerifyResult as TwoFactorVerifyResult,
+} from "@lemonldap-ng/2fa-common";
 
 /**
  * Credentials extracted from login form
@@ -136,6 +142,27 @@ export interface PasswordModule {
 }
 
 /**
+ * 2FA pending session state
+ * Stored temporarily during 2FA verification
+ */
+export interface TwoFactorPendingState {
+  /** User identifier */
+  user: string;
+  /** User data for session creation */
+  userData: UserData;
+  /** Credentials used */
+  credentials: Credentials;
+  /** Pending 2FA token */
+  token: string;
+  /** Available 2FA modules */
+  availableModules: string[];
+  /** Timestamp */
+  timestamp: number;
+  /** URL to redirect after login */
+  urldc?: string;
+}
+
+/**
  * Extended Express Request with portal data
  */
 export interface PortalRequest extends Request {
@@ -155,6 +182,14 @@ export interface PortalRequest extends Request {
   llngUrldc?: string;
   /** Password change result */
   llngPasswordResult?: PasswordChangeResult;
+  /** 2FA required for this user */
+  llng2faRequired?: boolean;
+  /** 2FA challenge data */
+  llng2faChallenge?: TwoFactorChallenge;
+  /** 2FA verification result */
+  llng2faResult?: TwoFactorVerifyResult;
+  /** 2FA pending state (waiting for 2FA verification) */
+  llng2faPending?: TwoFactorPendingState;
 }
 
 /**
@@ -192,3 +227,11 @@ export interface TemplateContext {
   /** Custom data */
   [key: string]: any;
 }
+
+// Re-export 2FA types for convenience
+export type {
+  SecondFactorModule,
+  SecondFactorRegisterModule,
+  TwoFactorChallenge,
+  TwoFactorVerifyResult,
+};

@@ -1,6 +1,7 @@
 import { Router, Response } from "express";
 import type { PortalRequest } from "../types";
 import type { Portal } from "../portal";
+import type { LLNG_Session } from "@lemonldap-ng/types";
 
 /**
  * Create portal routes
@@ -68,6 +69,44 @@ export function createRoutes(portal: Portal): Router {
         errorCode: "NO_USER_DATA",
       });
       return res.status(500).send(html);
+    }
+
+    // Check if 2FA is required
+    if (portal.has2FA()) {
+      const twoFactorManager = portal.getTwoFactorManager();
+
+      // Build a temporary session-like object to check 2FA
+      const tempSession: LLNG_Session = {
+        _session_id: "",
+        _utime: Math.floor(Date.now() / 1000),
+        _user: req.llngCredentials!.user,
+        _2fDevices: req.llngUserData.attributes._2fDevices as string,
+      };
+
+      if (twoFactorManager.is2FARequired(tempSession)) {
+        // Get available modules
+        const availableModules = twoFactorManager
+          .getAvailableModules(tempSession)
+          .map((m) => m.prefix);
+
+        if (availableModules.length > 0) {
+          // Create pending 2FA session
+          const sfToken = twoFactorManager.createPendingSession(
+            req.llngCredentials!.user,
+            req.llngUserData,
+            req.llngCredentials!,
+            availableModules,
+            req.llngUrldc || req.body?.url,
+          );
+
+          logger.info(
+            `2FA required for ${req.llngCredentials!.user}, redirecting`,
+          );
+
+          // Redirect to 2FA
+          return res.redirect(`/2fa?token=${sfToken}`);
+        }
+      }
     }
 
     const sessionId = portal.generateSessionId();
@@ -244,5 +283,7 @@ export function createRoutes(portal: Portal): Router {
 
   return router;
 }
+
+export { create2FARoutes } from "./2fa";
 
 export default createRoutes;
