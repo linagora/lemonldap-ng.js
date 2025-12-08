@@ -6,13 +6,15 @@
  */
 
 /**
- * Re-export lasso.js types for convenience
+ * Re-export lasso types from our loader (handles optional dependency)
  */
 export {
   HttpMethod,
   SignatureMethod,
   NameIdFormat,
   AuthnContext,
+  type HttpMethodType,
+  type SignatureMethodType,
   type NameIdFormatType,
   type AuthnContextType,
   type MessageResult,
@@ -20,7 +22,7 @@ export {
   type SamlAttribute,
   type ProviderOptions,
   type ServerOptions,
-} from "lasso.js";
+} from "./lasso-loader";
 
 /**
  * SAML binding types (compatible with Perl config)
