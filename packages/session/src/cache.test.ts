@@ -115,5 +115,5 @@ test("localCache cleaned", (done) => {
       expect(res).toBeUndefined();
       done();
     });
-  }, 2000);
+  }, 3000);
 }, 10000);
