@@ -154,6 +154,39 @@ function PerlDBI(args: PerlDBI_Args): PerlDBI_Client {
     // @ts-ignore
     dbArgs.connection.password = args.dbiPassword;
   }
+  // PostgreSQL converts unquoted identifiers to lowercase, Oracle to uppercase.
+  // Knex quotes identifiers, forcing exact case matching.
+  // Convert identifiers to match DB behavior and restore original case in results.
+  if (type === "pg" || type === "oracledb") {
+    const identifierMap = new Map<string, string>();
+    const transform = type === "pg"
+      ? (s: string) => s.toLowerCase()
+      : (s: string) => s.toUpperCase();
+
+    dbArgs.wrapIdentifier = (value, origImpl) => {
+      const transformed = transform(value);
+      if (transformed !== value) {
+        identifierMap.set(transformed, value);
+      }
+      return origImpl(transformed);
+    };
+    dbArgs.postProcessResponse = (result) => {
+      if (Array.isArray(result)) {
+        return result.map((row) => {
+          if (row && typeof row === "object") {
+            const newRow: Record<string, unknown> = {};
+            for (const [key, val] of Object.entries(row)) {
+              const originalKey = identifierMap.get(key) || key;
+              newRow[originalKey] = val;
+            }
+            return newRow;
+          }
+          return row;
+        });
+      }
+      return result;
+    };
+  }
   return knex(dbArgs);
 }
 
