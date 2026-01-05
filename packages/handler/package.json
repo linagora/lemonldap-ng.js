@@ -34,7 +34,8 @@
     "re2": "^1.17.7"
   },
   "optionalDependencies": {
-    "@lemonldap-ng/message-broker-nobroker": "^0.8.0"
+    "@lemonldap-ng/message-broker-nobroker": "^0.8.0",
+    "qs": "^6.14.1"
   },
   "bugs": {
     "url": "https://gitlab.ow2.org/lemonldap-ng/lemonldap-ng/issues"
