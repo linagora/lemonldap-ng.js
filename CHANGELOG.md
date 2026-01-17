@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Fix npm audit vulnerabilities (tar override)
+
 ## 0.7.0
 
 - Update dependencies
