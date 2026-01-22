@@ -1,6 +1,6 @@
 {
   "name": "@lemonldap-ng/jwt",
-  "version": "0.8.0",
+  "version": "0.9.3",
   "description": "JWT utilities for LemonLDAP::NG",
   "main": "./lib/index.js",
   "module": "./lib/index.mjs",

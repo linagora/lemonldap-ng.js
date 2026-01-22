@@ -1,8 +1,8 @@
 # Changelog
 
-## Unreleased
+## 0.9.3
 
-- Fix npm audit vulnerabilities (tar override)
+- Fix npm audit vulnerabilities (tar, lodash overrides)
 
 ## 0.7.0
 
