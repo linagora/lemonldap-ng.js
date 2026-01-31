@@ -254,7 +254,7 @@ class LemonldapNGHandler extends HandlerInit {
   ) {
     return new Promise<boolean>((resolve, reject) => {
       const vhost = this.resolveAlias(req);
-      if (!this.tsv.defaultCondition[vhost]) {
+      if (!Object.prototype.hasOwnProperty.call(this.tsv.defaultCondition, vhost)) {
         return reject(
           `No configuration found for ${vhost} (or not listed in Node.js virtualHosts)`,
         );
