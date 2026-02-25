@@ -274,8 +274,14 @@ export class Portal {
    * Render a template
    */
   render(template: string, context: Record<string, any> = {}): string {
+    // Get available languages from config or use defaults
+    const defaultLangs = ["en", "fr", "de", "es", "it", "pt", "nl", "ar", "he", "zh", "ru"];
+    const availableLanguages = this.conf?.languages || defaultLangs;
+
     return this.templateEngine!.render(template, {
       PORTAL: this.conf?.portal || "/",
+      availableLanguages,
+      lang: context.lang || "en",
       ...context,
     });
   }
