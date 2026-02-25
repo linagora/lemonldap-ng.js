@@ -8,6 +8,7 @@
  */
 
 import { totp } from "otplib";
+import { HashAlgorithms } from "@otplib/core";
 import crypto from "crypto";
 
 /**
@@ -32,6 +33,18 @@ export const DEFAULT_OPTIONS: Required<TOTPOptions> = {
   digits: 6,
   range: 1,
   algorithm: "sha1",
+};
+
+/**
+ * Map string algorithm to otplib HashAlgorithms enum
+ */
+const ALGORITHM_MAP: Record<
+  NonNullable<TOTPOptions["algorithm"]>,
+  HashAlgorithms
+> = {
+  sha1: HashAlgorithms.SHA1,
+  sha256: HashAlgorithms.SHA256,
+  sha512: HashAlgorithms.SHA512,
 };
 
 /**
@@ -70,7 +83,7 @@ export function generateCode(
   totp.options = {
     step: opts.interval,
     digits: opts.digits,
-    algorithm: opts.algorithm,
+    algorithm: ALGORITHM_MAP[opts.algorithm],
   };
 
   return totp.generate(secret);
@@ -106,7 +119,7 @@ export function verifyCode(
   totp.options = {
     step: opts.interval,
     digits: opts.digits,
-    algorithm: opts.algorithm,
+    algorithm: ALGORITHM_MAP[opts.algorithm],
     window: opts.range, // Allow range windows before/after
   };
 
