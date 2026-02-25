@@ -31,7 +31,7 @@ export interface AuthResult {
   success: boolean;
   user?: string;
   error?: string;
-  errorCode?: string;
+  errorCode?: string | number;
   /** Additional info (e.g., PPolicy warnings) */
   info?: AuthResultInfo;
 }
@@ -217,7 +217,7 @@ export interface TemplateContext {
   /** Error message */
   AUTH_ERROR?: string;
   /** Error code */
-  AUTH_ERROR_CODE?: string;
+  AUTH_ERROR_CODE?: string | number;
   /** User login (for pre-fill) */
   LOGIN?: string;
   /** URL to redirect after auth */
