@@ -1,3 +1,4 @@
+import { vi } from "vitest";
 /**
  * Tests for OIDC Auth (Relying Party) module
  */
@@ -6,7 +7,7 @@ import { OIDCAuth } from "./auth";
 import { OIDCAuthConfig, OIDCOPConfig } from "./types";
 
 // Mock fetch
-const mockFetch = jest.fn();
+const mockFetch = vi.fn();
 global.fetch = mockFetch;
 
 // Test OP configuration

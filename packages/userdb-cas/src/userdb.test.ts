@@ -1,3 +1,4 @@
+import { vi } from "vitest";
 /**
  * Tests for CAS UserDB
  */
@@ -203,10 +204,10 @@ describe("CASUserDB", () => {
   describe("logging", () => {
     it("should call logger when configured", async () => {
       const logger = {
-        debug: jest.fn(),
-        info: jest.fn(),
-        warn: jest.fn(),
-        error: jest.fn(),
+        debug: vi.fn(),
+        info: vi.fn(),
+        warn: vi.fn(),
+        error: vi.fn(),
       };
 
       const userdb = new CASUserDB({ logger });

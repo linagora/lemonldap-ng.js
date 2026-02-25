@@ -1,3 +1,4 @@
+import { vi } from "vitest";
 /**
  * Tests for KeyManager
  */
@@ -48,16 +49,16 @@ fwIDAQAB
 
 // Mock logger
 const mockLogger: Logger = {
-  error: jest.fn(),
-  warn: jest.fn(),
-  notice: jest.fn(),
-  info: jest.fn(),
-  debug: jest.fn(),
+  error: vi.fn(),
+  warn: vi.fn(),
+  notice: vi.fn(),
+  info: vi.fn(),
+  debug: vi.fn(),
 };
 
 describe("KeyManager", () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe("initialization", () => {

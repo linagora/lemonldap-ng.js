@@ -1,3 +1,4 @@
+import { vi } from "vitest";
 /**
  * Tests for 2fa-common device registry
  */
@@ -33,14 +34,14 @@ describe("Device parsing and serialization", () => {
     });
 
     it("should return empty array for invalid JSON", () => {
-      const consoleSpy = jest.spyOn(console, "warn").mockImplementation();
+      const consoleSpy = vi.spyOn(console, "warn").mockImplementation();
       expect(parseDevices("not json")).toEqual([]);
       expect(consoleSpy).toHaveBeenCalled();
       consoleSpy.mockRestore();
     });
 
     it("should return empty array for non-array JSON", () => {
-      const consoleSpy = jest.spyOn(console, "warn").mockImplementation();
+      const consoleSpy = vi.spyOn(console, "warn").mockImplementation();
       expect(parseDevices('{"foo": "bar"}')).toEqual([]);
       expect(consoleSpy).toHaveBeenCalled();
       consoleSpy.mockRestore();

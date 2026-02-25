@@ -1,3 +1,4 @@
+import { vi } from "vitest";
 /**
  * Tests for OIDC Provider
  */
@@ -48,11 +49,11 @@ fwIDAQAB
 
 // Mock logger
 const mockLogger = {
-  error: jest.fn(),
-  warn: jest.fn(),
-  notice: jest.fn(),
-  info: jest.fn(),
-  debug: jest.fn(),
+  error: vi.fn(),
+  warn: vi.fn(),
+  notice: vi.fn(),
+  info: vi.fn(),
+  debug: vi.fn(),
 };
 
 describe("OIDCProvider", () => {
@@ -60,7 +61,7 @@ describe("OIDCProvider", () => {
   let config: OIDCProviderConfig;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     config = {
       oidcServiceMetaDataIssuer: "https://auth.example.com",

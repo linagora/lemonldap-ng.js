@@ -72,12 +72,8 @@ test("able to update session", async () => {
   expect(sessionConn.inMemoryCache.get(id).f1).toEqual("field: 3");
 });
 
-test(
-  "localCache cleaned",
-  async () => {
-    await new Promise((resolve) => setTimeout(resolve, 3000));
-    const res: any = await sessionConn.localCache.get(id);
-    expect(res).toBeUndefined();
-  },
-  10000,
-);
+test("localCache cleaned", async () => {
+  await new Promise((resolve) => setTimeout(resolve, 3000));
+  const res: any = await sessionConn.localCache.get(id);
+  expect(res).toBeUndefined();
+}, 10000);

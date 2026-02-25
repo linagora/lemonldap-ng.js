@@ -1,3 +1,4 @@
+import { vi } from "vitest";
 /**
  * Tests for TwoFactorManager
  */
@@ -8,11 +9,11 @@ import type { UserData } from "../types";
 
 // Mock logger
 const mockLogger: LLNG_Logger = {
-  debug: jest.fn(),
-  info: jest.fn(),
-  notice: jest.fn(),
-  warn: jest.fn(),
-  error: jest.fn(),
+  debug: vi.fn(),
+  info: vi.fn(),
+  notice: vi.fn(),
+  warn: vi.fn(),
+  error: vi.fn(),
 };
 
 // Base configuration
@@ -31,7 +32,7 @@ function createUserData(uid: string): UserData {
 
 describe("TwoFactorManager", () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe("Initialization", () => {
