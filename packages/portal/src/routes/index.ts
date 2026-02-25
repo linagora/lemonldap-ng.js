@@ -1,7 +1,38 @@
-import { Router, Response } from "express";
+import { Router, Response, Request } from "express";
 import type { PortalRequest } from "../types";
 import type { Portal } from "../portal";
 import type { LLNG_Session } from "@lemonldap-ng/types";
+
+/**
+ * Check if request wants JSON response
+ */
+function wantsJson(req: Request): boolean {
+  const accept = req.headers.accept || "";
+  // JSON if explicitly requested and not also requesting HTML
+  return accept.includes("application/json") && !accept.includes("text/html");
+}
+
+/**
+ * Check if URL is protected (has locationRules)
+ */
+function isUrlProtected(url: string, conf: any): boolean {
+  if (!url || !conf.locationRules) return true; // assume protected if no rules
+  try {
+    const urlObj = new URL(url);
+    const host = urlObj.hostname;
+    // Check if host has locationRules (exact match)
+    if (conf.locationRules[host]) return true;
+    // Check for wildcard matches (*.example.com matches foo.example.com)
+    const hostParts = host.split(".");
+    for (let i = 1; i < hostParts.length; i++) {
+      const wildcardHost = "*." + hostParts.slice(i).join(".");
+      if (conf.locationRules[wildcardHost]) return true;
+    }
+    return false;
+  } catch {
+    return true; // assume protected on parse error
+  }
+}
 
 /**
  * Create portal routes
@@ -12,23 +43,98 @@ export function createRoutes(portal: Portal): Router {
   const logger = portal.getLogger();
   const cookieName = conf.cookieName || "lemonldap";
 
+  // Add security headers middleware
+  router.use((req, res, next) => {
+    if (conf.strictTransportSecurityMax_Age) {
+      res.setHeader("Strict-Transport-Security", `max-age=${conf.strictTransportSecurityMax_Age}`);
+    }
+    next();
+  });
+
   /**
    * GET / - Show login form or menu
    */
   router.get("/", async (req: PortalRequest, res: Response) => {
+    // Handle logout via query parameter (?logout)
+    if ("logout" in req.query) {
+      if (req.llngSessionId) {
+        await portal.deleteSession(req.llngSessionId);
+        logger.info(`Session ${req.llngSessionId} logged out via query`);
+      }
+      // Clear cookie by setting it to empty with past expiration
+      res.setHeader("Set-Cookie", `${cookieName}=; Path=/; Domain=${conf.domain}; Max-Age=0`);
+      if (wantsJson(req)) {
+        return res.json({ result: 1 });
+      }
+      const html = portal.render("login", { FAVICON: conf.portalFavicon });
+      return res.send(html);
+    }
+
     // Already authenticated?
     if (req.llngSession) {
+      // Set authenticated user header
+      res.setHeader("Lm-Remote-User", String(req.llngSession.uid || req.llngSession._user || ""));
+
+      // Check for URL redirect
+      const urlParam = req.query.url as string | undefined;
+      if (urlParam) {
+        try {
+          const decodedUrl = Buffer.from(urlParam, "base64").toString();
+          // Only redirect if URL is protected (host is declared in locationRules)
+          if (isUrlProtected(decodedUrl, conf)) {
+            return res.redirect(302, decodedUrl);
+          }
+          // URL is not protected, show menu instead
+        } catch {
+          // Invalid base64, continue with menu
+        }
+      }
+
+      if (wantsJson(req)) {
+        return res.json({ result: 1, user: req.llngSession.uid || req.llngSession._user });
+      }
       const html = portal.render("menu", {
         session: req.llngSession,
         URLDC: req.llngUrldc,
         HAS_PASSWORD_MODULE: portal.hasPasswordModule(),
+        FAVICON: conf.portalFavicon,
       });
       return res.send(html);
     }
 
-    // Show login form
+    // Check if URL parameter is for an unprotected URL
+    const urlParam = req.query.url as string | undefined;
+    if (urlParam) {
+      try {
+        const decodedUrl = Buffer.from(urlParam, "base64").toString();
+        if (!isUrlProtected(decodedUrl, conf)) {
+          // Unprotected URL - error 109
+          if (wantsJson(req)) {
+            return res.status(401).json({ result: 0, error: 109 });
+          }
+          const html = portal.render("login", {
+            ERROR_CODE: 109,
+            ERROR_MSG: "Unprotected URL",
+            FAVICON: conf.portalFavicon,
+          });
+          return res.send(html);
+        }
+      } catch {
+        // Invalid base64, continue with normal flow
+      }
+    }
+
+    // Not authenticated - return 401 for JSON, login form for HTML
+    if (wantsJson(req)) {
+      return res.status(401).json({ result: 0, error: 9 });
+    }
+
+    // Show login form with error code 9 (first access)
     const html = portal.render("login", {
       URLDC: req.llngUrldc,
+      ERROR_CODE: 9,
+      ERROR_MSG: "Please authenticate",
+      FAVICON: conf.portalFavicon,
     });
     res.send(html);
   });
@@ -43,6 +149,9 @@ export function createRoutes(portal: Portal): Router {
       if (req.llngUrldc) {
         return res.redirect(req.llngUrldc);
       }
+      if (wantsJson(req)) {
+        return res.json({ result: 1, user: req.llngSession.uid || req.llngSession._user });
+      }
       const html = portal.render("menu", {
         session: req.llngSession,
         HAS_PASSWORD_MODULE: portal.hasPasswordModule(),
@@ -52,12 +161,17 @@ export function createRoutes(portal: Portal): Router {
 
     // Check auth result
     if (!req.llngAuthResult?.success) {
-      // Auth failed, show login form with error
+      // Auth failed
+      if (wantsJson(req)) {
+        return res.status(401).json({ result: 0, error: req.llngAuthResult?.errorCode || 5 });
+      }
+      // Show login form with error (error code 5 = bad credentials)
       const html = portal.render("login", {
         AUTH_ERROR: req.llngAuthResult?.error || "Authentication failed",
-        AUTH_ERROR_CODE: req.llngAuthResult?.errorCode,
+        AUTH_ERROR_CODE: req.llngAuthResult?.errorCode || 5,
         LOGIN: req.llngCredentials?.user,
         URLDC: req.llngUrldc || req.body?.url,
+        FAVICON: conf.portalFavicon,
       });
       return res.send(html);
     }
@@ -150,8 +264,12 @@ export function createRoutes(portal: Portal): Router {
 
     // Redirect to urldc or show menu
     const urldc = req.llngUrldc || req.body?.url;
-    if (urldc) {
+    if (urldc && !wantsJson(req)) {
       return res.redirect(urldc);
+    }
+
+    if (wantsJson(req)) {
+      return res.json({ result: 1, id: sessionId });
     }
 
     const html = portal.render("menu", {
@@ -175,6 +293,10 @@ export function createRoutes(portal: Portal): Router {
       path: "/",
       domain: conf.domain,
     });
+
+    if (wantsJson(req)) {
+      return res.json({ result: 1 });
+    }
 
     // Show login form
     const html = portal.render("login", {});
