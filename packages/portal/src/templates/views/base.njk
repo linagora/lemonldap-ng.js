@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}LemonLDAP::NG{% endblock %}</title>
+  {% if FAVICON %}<link href="/static/{{ FAVICON }}" rel="icon">{% endif %}
   <style>
     * {
       box-sizing: border-box;
@@ -144,6 +145,7 @@
 <body>
   <div class="container">
     {% block content %}{% endblock %}
+    <span id="languages"></span>
   </div>
 </body>
 </html>

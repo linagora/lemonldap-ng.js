@@ -8,13 +8,17 @@
   <p>Single Sign-On Portal</p>
 </div>
 
-{% if AUTH_ERROR %}
+{% if AUTH_ERROR_CODE %}
+<span trmsg="{{ AUTH_ERROR_CODE }}">{{ AUTH_ERROR }}</span>
+{% elif AUTH_ERROR %}
 <div class="alert alert-error">
   {{ AUTH_ERROR }}
 </div>
+{% elif ERROR_CODE %}
+<span trmsg="{{ ERROR_CODE }}">{{ ERROR_MSG }}</span>
 {% endif %}
 
-<form method="post" action="{{ PORTAL | default('/') }}">
+<form action="{{ PORTAL | default('/') }}" method="post">
   {% if URLDC %}
   <input type="hidden" name="url" value="{{ URLDC | attrEscape }}">
   {% endif %}
@@ -31,6 +35,6 @@
            autocomplete="current-password" required>
   </div>
 
-  <button type="submit">Sign in</button>
+  <button type="submit"><span trspan="connect">Connect</span></button>
 </form>
 {% endblock %}
