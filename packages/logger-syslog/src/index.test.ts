@@ -1,3 +1,5 @@
+import { vi } from "vitest";
+
 const syslog = require("modern-syslog");
 
 let logSpy, openSpy;
@@ -9,26 +11,21 @@ const conf = {
 };
 
 beforeEach(() => {
-  logSpy = jest.spyOn(syslog, "log");
-  openSpy = jest.spyOn(syslog, "open");
+  logSpy = vi.spyOn(syslog, "log");
+  openSpy = vi.spyOn(syslog, "open");
 });
 
 afterEach(() => {
-  jest.clearAllMocks();
+  vi.clearAllMocks();
 });
 
 describe("syslog logger", () => {
-  it("should apply logLevel", (done) => {
-    const stdLogger = Logger(conf, false);
-    stdLogger
-      .then((logger) => {
-        expect(openSpy).toHaveBeenCalled();
-        logger.info("info");
-        expect(logSpy).not.toHaveBeenCalledWith("info");
-        logger.warn("warn");
-        expect(logSpy).toHaveBeenCalledWith("LOG_WARNING", "warn");
-        done();
-      })
-      .catch((e) => done(e));
+  it("should apply logLevel", async () => {
+    const logger = await Logger(conf, false);
+    expect(openSpy).toHaveBeenCalled();
+    logger.info("info");
+    expect(logSpy).not.toHaveBeenCalledWith("info");
+    logger.warn("warn");
+    expect(logSpy).toHaveBeenCalledWith("LOG_WARNING", "warn");
   });
 });

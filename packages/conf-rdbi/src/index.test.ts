@@ -35,40 +35,22 @@ afterAll(() => {
   clean();
 });
 
-test("store new conf", (done) => {
-  cdbi.store({ cfgNum: 1, f1: "field 1" }).then((res) => {
-    expect(res).toBeTrue;
-    done();
-  });
+test("store new conf", async () => {
+  const res = await cdbi.store({ cfgNum: 1, f1: "field 1" });
+  expect(res).toBe(true);
 });
 
-test("read new conf", (done) => {
-  cdbi
-    .load(1)
-    .then((res) => {
-      expect(res.f1).toEqual("field 1");
-      done();
-    })
-    .catch((e) => {
-      console.error(e);
-    });
+test("read new conf", async () => {
+  const res = await cdbi.load(1);
+  expect(res.f1).toEqual("field 1");
 });
 
-test("store updated conf", (done) => {
-  cdbi.store({ cfgNum: 1, f1: "field 2" }).then((res) => {
-    expect(res).toBeTrue;
-    done();
-  });
+test("store updated conf", async () => {
+  const res = await cdbi.store({ cfgNum: 1, f1: "field 2" });
+  expect(res).toBe(true);
 });
 
-test("read updated conf", (done) => {
-  cdbi
-    .load(1)
-    .then((res) => {
-      expect(res.f1).toEqual("field 2");
-      done();
-    })
-    .catch((e) => {
-      console.error(e);
-    });
+test("read updated conf", async () => {
+  const res = await cdbi.load(1);
+  expect(res.f1).toEqual("field 2");
 });

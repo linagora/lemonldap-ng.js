@@ -17,15 +17,10 @@ afterAll(() => {
   fs.rmSync(iniTmp);
 });
 
-test("read file conf", (done) => {
+test("read file conf", async () => {
   const confAccessor = new Llngconf({ confFile: iniTmp });
-  confAccessor.ready.then(() => {
-    confAccessor.getConf({}).then((conf) => {
-      expect(conf.cfgNum).toEqual(1);
-      expect(conf.cipher.decrypt(conf.cipher.encrypt("foobar"))).toEqual(
-        "foobar",
-      );
-      done();
-    });
-  });
+  await confAccessor.ready;
+  const conf = await confAccessor.getConf({});
+  expect(conf.cfgNum).toEqual(1);
+  expect(conf.cipher.decrypt(conf.cipher.encrypt("foobar"))).toEqual("foobar");
 });

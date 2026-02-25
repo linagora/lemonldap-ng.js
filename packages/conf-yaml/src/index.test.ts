@@ -24,54 +24,32 @@ beforeAll(async () => {
 
 afterAll(clean);
 
-test("store new conf", (done) => {
-  yamlConfs.store({ cfgNum: 1, f1: "field 1", _utime: 11 }).then((res) => {
-    expect(res).toBeTruthy();
-    done();
-  });
+test("store new conf", async () => {
+  const res = await yamlConfs.store({ cfgNum: 1, f1: "field 1", _utime: 11 });
+  expect(res).toBeTruthy();
 });
 
-test("read new conf", (done) => {
-  yamlConfs
-    .load(1)
-    .then((res) => {
-      expect(res.f1).toEqual("field 1");
-      done();
-    })
-    .catch((e) => {
-      console.error(e);
-    });
+test("read new conf", async () => {
+  const res = await yamlConfs.load(1);
+  expect(res.f1).toEqual("field 1");
 });
 
-test("store updated conf", (done) => {
-  yamlConfs.store({ cfgNum: 1, f1: "field 2" }).then((res) => {
-    expect(res).toBeTrue;
-    done();
-  });
+test("store updated conf", async () => {
+  const res = await yamlConfs.store({ cfgNum: 1, f1: "field 2" });
+  expect(res).toBe(true);
 });
 
-test("read updated conf", (done) => {
-  yamlConfs
-    .load(1)
-    .then((res) => {
-      expect(res.f1).toEqual("field 2");
-      done();
-    })
-    .catch((e) => {
-      console.error(e);
-    });
+test("read updated conf", async () => {
+  const res = await yamlConfs.load(1);
+  expect(res.f1).toEqual("field 2");
 });
 
-test("available", (done) => {
-  yamlConfs.available().then((res) => {
-    expect(res).toEqual([1]);
-    done();
-  });
+test("available", async () => {
+  const res = await yamlConfs.available();
+  expect(res).toEqual([1]);
 });
 
-test("lastCfg", (done) => {
-  yamlConfs.lastCfg().then((res) => {
-    expect(res).toEqual(1);
-    done();
-  });
+test("lastCfg", async () => {
+  const res = await yamlConfs.lastCfg();
+  expect(res).toEqual(1);
 });

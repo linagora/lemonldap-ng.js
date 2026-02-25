@@ -31,20 +31,16 @@ beforeAll(async () => {
 
 afterAll(clean);
 
-test("available", (done) => {
+test("available", async () => {
   const dbi = new DBI({ dbiChain });
-  dbi.available().then((res) => {
-    expect(res).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
-    dbi.destroy();
-    done();
-  });
+  const res = await dbi.available();
+  expect(res).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+  dbi.destroy();
 });
 
-test("lastCfg", (done) => {
+test("lastCfg", async () => {
   const dbi = new DBI({ dbiChain });
-  dbi.lastCfg().then((res) => {
-    expect(res).toEqual(9);
-    dbi.destroy();
-    done();
-  });
+  const res = await dbi.lastCfg();
+  expect(res).toEqual(9);
+  dbi.destroy();
 });

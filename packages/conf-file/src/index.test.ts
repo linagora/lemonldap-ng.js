@@ -46,7 +46,7 @@ describe("File configuration", () => {
           cfgNum: 1,
           f1: "field 1",
         }),
-      ).resolves.toBeTrue;
+      ).resolves.toBe(true);
     });
 
     it("should find 1 available configuration", () => {
@@ -69,7 +69,7 @@ describe("File configuration", () => {
           cfgNum: 1,
           f1: "field 2",
         }),
-      ).resolves.toBeTrue;
+      ).resolves.toBe(true);
     });
 
     it("should read updated conf", () => {
