@@ -22,7 +22,7 @@ const clean = () => {
 
 let sessionConn: typeof session;
 
-beforeAll((done) => {
+beforeAll(async () => {
   clean();
   sessionConn = new session({
     storageModule: "Apache::Session::File",
@@ -33,9 +33,7 @@ beforeAll((done) => {
       cache_root: cache,
     },
   });
-  sessionConn.ready.then(() => {
-    done();
-  });
+  await sessionConn.ready;
 });
 
 afterAll(async () => {
@@ -43,77 +41,43 @@ afterAll(async () => {
   clean();
 });
 
-test("able to create session via update", (done) => {
-  sessionConn
-    .update({
-      _session_id: id,
-      f1: "field: 1",
-      f2: "field: 2",
-    })
-    .then((res: boolean) => {
-      expect(res).toBeTruthy();
-      sessionConn.get(id).then((session: { f1: string; f2: string }) => {
-        expect(session.f1).toEqual("field: 1");
-        expect(session.f2).toEqual("field: 2");
-        expect(sessionConn.inMemoryCache.get(id).f1).toEqual("field: 1");
-        /*
-        sessionConn.localCache.get(id).then((res: { f1: string }) => {
-          expect(res.f1).toEqual('field: 1')
-          done()
-        })
-        */
-        done();
-      });
-    })
-    .catch((e: any) => {
-      throw new Error(e);
-    });
+test("able to create session via update", async () => {
+  const res: boolean = await sessionConn.update({
+    _session_id: id,
+    f1: "field: 1",
+    f2: "field: 2",
+  });
+  expect(res).toBeTruthy();
+  const session: { f1: string; f2: string } = await sessionConn.get(id);
+  expect(session.f1).toEqual("field: 1");
+  expect(session.f2).toEqual("field: 2");
+  expect(sessionConn.inMemoryCache.get(id).f1).toEqual("field: 1");
 });
 
-test("able to get session", (done) => {
-  sessionConn
-    .get(id)
-    .then((session: { f1: string }) => {
-      expect(session.f1).toEqual("field: 1");
-      done();
-    })
-    .catch((e: any) => {
-      throw new Error(e);
-    });
+test("able to get session", async () => {
+  const session: { f1: string } = await sessionConn.get(id);
+  expect(session.f1).toEqual("field: 1");
 });
 
-test("able to update session", (done) => {
-  sessionConn
-    .update({
-      _session_id: id,
-      f1: "field: 3",
-      f2: "field: 4",
-    })
-    .then((res: boolean) => {
-      expect(res).toBeTruthy();
-      sessionConn.get(id).then((session: { f1: string; f2: string }) => {
-        expect(session.f1).toEqual("field: 3");
-        expect(session.f2).toEqual("field: 4");
-        expect(sessionConn.inMemoryCache.get(id).f1).toEqual("field: 3");
-        /*
-        sessionConn.localCache.get(id).then((res: { f1: string }) => {
-          expect(res.f1).toEqual('field: 3')
-          done()
-        })
-        */
-        done();
-      });
-    })
-    .catch((e: any) => {
-      throw new Error(e);
-    });
+test("able to update session", async () => {
+  const res: boolean = await sessionConn.update({
+    _session_id: id,
+    f1: "field: 3",
+    f2: "field: 4",
+  });
+  expect(res).toBeTruthy();
+  const session: { f1: string; f2: string } = await sessionConn.get(id);
+  expect(session.f1).toEqual("field: 3");
+  expect(session.f2).toEqual("field: 4");
+  expect(sessionConn.inMemoryCache.get(id).f1).toEqual("field: 3");
 });
 
-test("localCache cleaned", (done) => {
-  setTimeout(() => {
-    sessionConn.localCache.get(id).then((res: any) => {
-      expect(res).toBeUndefined();
-      done();
-    });
-  }, 3000);
-}, 10000);
+test(
+  "localCache cleaned",
+  async () => {
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+    const res: any = await sessionConn.localCache.get(id);
+    expect(res).toBeUndefined();
+  },
+  10000,
+);

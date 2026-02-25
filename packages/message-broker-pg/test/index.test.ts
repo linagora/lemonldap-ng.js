@@ -4,19 +4,21 @@
  * Unit tests that don't require a running PostgreSQL instance.
  */
 
+import { vi } from "vitest";
+
 describe("@lemonldap-ng/message-broker-pg", () => {
   const PgBroker = require("..");
 
   const mockLogger = {
-    debug: jest.fn(),
-    info: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
-    notice: jest.fn(),
+    debug: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    notice: vi.fn(),
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe("constructor", () => {
