@@ -62,13 +62,14 @@ export class Portal {
     const authType = (this.conf.authentication || "Demo").toLowerCase();
     await this.loadAuthModule(authType);
 
-    // Load userDB module
-    const userDBType = (this.conf.userDB || "Demo").toLowerCase();
+    // Load userDB module ("Same" means use the same as authentication)
+    const userDBConf = this.conf.userDB || "Demo";
+    const userDBType = userDBConf.toLowerCase() === "same" ? authType : userDBConf.toLowerCase();
     await this.loadUserDBModule(userDBType);
 
-    // Load password module (if configured)
+    // Load password module (if configured and not "Null")
     const passwordDBType = this.conf.passwordDB as string | undefined;
-    if (passwordDBType) {
+    if (passwordDBType && passwordDBType.toLowerCase() !== "null") {
       await this.loadPasswordModule(passwordDBType.toLowerCase());
       logger.info(
         `Portal initialized with auth=${authType}, userDB=${userDBType}, passwordDB=${passwordDBType}`,
