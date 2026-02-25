@@ -208,7 +208,10 @@ export function createRoutes(portal: Portal): Router {
       if (wantsJson(req)) {
         return res
           .status(401)
-          .json({ result: 0, error: toNumericErrorCode(req.llngAuthResult?.errorCode) });
+          .json({
+            result: 0,
+            error: toNumericErrorCode(req.llngAuthResult?.errorCode),
+          });
       }
       // Show login form with error (error code 5 = bad credentials)
       const html = portal.render("login", {
