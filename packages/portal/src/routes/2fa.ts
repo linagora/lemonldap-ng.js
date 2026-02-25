@@ -73,7 +73,9 @@ export function create2FARoutes(portal: Portal): Router {
    * GET /2fa/:type - Show specific 2FA challenge
    */
   router.get("/2fa/:type", async (req: PortalRequest, res: Response) => {
-    const type = req.params.type;
+    const type = Array.isArray(req.params.type)
+      ? req.params.type[0]
+      : req.params.type;
     const sfToken = (req.query.token as string) || req.cookies?.sfToken;
 
     if (!sfToken) {
@@ -139,7 +141,9 @@ export function create2FARoutes(portal: Portal): Router {
    * POST /2fa/:type - Verify 2FA response
    */
   router.post("/2fa/:type", async (req: PortalRequest, res: Response) => {
-    const type = req.params.type;
+    const type = Array.isArray(req.params.type)
+      ? req.params.type[0]
+      : req.params.type;
     const sfToken = req.body?.token || req.cookies?.sfToken;
 
     if (!sfToken) {
