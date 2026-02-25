@@ -206,12 +206,10 @@ export function createRoutes(portal: Portal): Router {
     if (!req.llngAuthResult?.success) {
       // Auth failed
       if (wantsJson(req)) {
-        return res
-          .status(401)
-          .json({
-            result: 0,
-            error: toNumericErrorCode(req.llngAuthResult?.errorCode),
-          });
+        return res.status(401).json({
+          result: 0,
+          error: toNumericErrorCode(req.llngAuthResult?.errorCode),
+        });
       }
       // Show login form with error (error code 5 = bad credentials)
       const html = portal.render("login", {
