@@ -94,6 +94,20 @@ async function main() {
     res.json({ status: "ok", tmpDir: options.tmpDir, realPortal: useRealPortal });
   });
 
+  // Serve static files (languages, icons, js)
+  const staticPath = path.join(__dirname, "../lib/static");
+  if (fs.existsSync(staticPath)) {
+    app.use("/static", express.static(staticPath));
+    log("info", `Serving static files from ${staticPath}`, options);
+  } else {
+    // Try src/static in development
+    const srcStaticPath = path.join(__dirname, "../src/static");
+    if (fs.existsSync(srcStaticPath)) {
+      app.use("/static", express.static(srcStaticPath));
+      log("info", `Serving static files from ${srcStaticPath}`, options);
+    }
+  }
+
   if (useRealPortal) {
     // Use real Portal middleware
     const { middleware } = require("../lib/index.cjs");
