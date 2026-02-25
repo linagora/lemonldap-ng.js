@@ -1,3 +1,4 @@
+import { vi } from "vitest";
 import { LDAPUserDB, createUserDBModule } from "../index";
 import type { LLNG_Conf, LLNG_Logger, LLNG_Session } from "@lemonldap-ng/types";
 import ldap from "ldapjs";
@@ -187,11 +188,11 @@ describe("LDAPUserDB", () => {
   let userdb: LDAPUserDB;
 
   const mockLogger: LLNG_Logger = {
-    error: jest.fn(),
-    warn: jest.fn(),
-    notice: jest.fn(),
-    info: jest.fn(),
-    debug: jest.fn(),
+    error: vi.fn(),
+    warn: vi.fn(),
+    notice: vi.fn(),
+    info: vi.fn(),
+    debug: vi.fn(),
   };
 
   const createConf = (overrides: Partial<LLNG_Conf> = {}): LLNG_Conf =>
@@ -231,7 +232,7 @@ describe("LDAPUserDB", () => {
   });
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     userdb = new LDAPUserDB();
   });
 

@@ -1,3 +1,4 @@
+import { vi } from "vitest";
 /**
  * DBI UserDB module tests
  */
@@ -14,11 +15,11 @@ describe("DBIUserDB", () => {
   let db: ReturnType<typeof PerlDBI>;
 
   const mockLogger: LLNG_Logger = {
-    error: jest.fn(),
-    warn: jest.fn(),
-    notice: jest.fn(),
-    info: jest.fn(),
-    debug: jest.fn(),
+    error: vi.fn(),
+    warn: vi.fn(),
+    notice: vi.fn(),
+    info: vi.fn(),
+    debug: vi.fn(),
   };
 
   beforeAll(async () => {
@@ -91,7 +92,7 @@ describe("DBIUserDB", () => {
   });
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     userdbModule = new DBIUserDB();
   });
 

@@ -1,12 +1,13 @@
+import { vi } from "vitest";
 import { DemoAuth, createAuthModule } from "../index";
 import type { LLNG_Conf, LLNG_Logger } from "@lemonldap-ng/types";
 
 const mockLogger: LLNG_Logger = {
-  error: jest.fn(),
-  warn: jest.fn(),
-  notice: jest.fn(),
-  info: jest.fn(),
-  debug: jest.fn(),
+  error: vi.fn(),
+  warn: vi.fn(),
+  notice: vi.fn(),
+  info: vi.fn(),
+  debug: vi.fn(),
 };
 
 describe("DemoAuth", () => {
@@ -19,7 +20,7 @@ describe("DemoAuth", () => {
 
   afterEach(async () => {
     await auth.close();
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe("factory function", () => {

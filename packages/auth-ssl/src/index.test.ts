@@ -1,13 +1,14 @@
+import { vi } from "vitest";
 import { SSLAuth, Logger } from "./index";
 import { Request } from "express";
 
 // Mock logger
 const createLogger = (): Logger => ({
-  error: jest.fn(),
-  warn: jest.fn(),
-  notice: jest.fn(),
-  info: jest.fn(),
-  debug: jest.fn(),
+  error: vi.fn(),
+  warn: vi.fn(),
+  notice: vi.fn(),
+  info: vi.fn(),
+  debug: vi.fn(),
 });
 
 // Mock request factory

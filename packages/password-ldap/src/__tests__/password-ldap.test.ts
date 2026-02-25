@@ -1,3 +1,4 @@
+import { vi } from "vitest";
 /**
  * LDAP Password module tests
  */
@@ -10,7 +11,6 @@ import { LDAPPassword, ADPassword } from "../index";
 import type { LLNG_Conf, LLNG_Logger } from "@lemonldap-ng/types";
 
 // Increase global timeout for async operations
-jest.setTimeout(30000);
 
 describe("LDAPPassword", () => {
   let server: TestLDAPServer;
@@ -18,11 +18,11 @@ describe("LDAPPassword", () => {
   const testPort = 3895;
 
   const mockLogger: LLNG_Logger = {
-    error: jest.fn(),
-    warn: jest.fn(),
-    notice: jest.fn(),
-    info: jest.fn(),
-    debug: jest.fn(),
+    error: vi.fn(),
+    warn: vi.fn(),
+    notice: vi.fn(),
+    info: vi.fn(),
+    debug: vi.fn(),
   };
 
   const testConf = {
@@ -47,7 +47,7 @@ describe("LDAPPassword", () => {
   });
 
   beforeEach(async () => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     // Reset user passwords
     server.setUserPassword("uid=dwho,ou=users,dc=example,dc=com", "dwho");
     server.setUserPassword("uid=rtyler,ou=users,dc=example,dc=com", "rtyler");

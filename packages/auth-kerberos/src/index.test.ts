@@ -1,13 +1,14 @@
+import { vi } from "vitest";
 import { KerberosAuth, Logger } from "./index";
 import { Request, Response } from "express";
 
 // Mock logger
 const createLogger = (): Logger => ({
-  error: jest.fn(),
-  warn: jest.fn(),
-  notice: jest.fn(),
-  info: jest.fn(),
-  debug: jest.fn(),
+  error: vi.fn(),
+  warn: vi.fn(),
+  notice: vi.fn(),
+  info: vi.fn(),
+  debug: vi.fn(),
 });
 
 // Mock request factory
@@ -20,8 +21,8 @@ function createMockRequest(headers: Record<string, string> = {}): Request {
 // Mock response factory
 function createMockResponse(): Response {
   const res = {
-    setHeader: jest.fn(),
-    status: jest.fn().mockReturnThis(),
+    setHeader: vi.fn(),
+    status: vi.fn().mockReturnThis(),
   };
   return res as unknown as Response;
 }
@@ -319,14 +320,14 @@ describe("KerberosAuth with mock GSSAPI", () => {
     // Mock the kerberos module
     const mockCtx = {
       username: mockUsername,
-      step: jest.fn((token, callback) => {
+      step: vi.fn((token, callback) => {
         callback(null, mockResponseToken);
       }),
     };
 
     // @ts-expect-error - accessing private property for testing
     auth.kerberos = {
-      initializeServer: jest.fn((service, callback) => {
+      initializeServer: vi.fn((service, callback) => {
         callback(null, mockCtx);
       }),
     };
@@ -353,13 +354,13 @@ describe("KerberosAuth with mock GSSAPI", () => {
     // Re-mock kerberos
     const mockCtx = {
       username: mockUsername,
-      step: jest.fn((token, callback) => {
+      step: vi.fn((token, callback) => {
         callback(null, mockResponseToken);
       }),
     };
     // @ts-expect-error - accessing private property for testing
     auth.kerberos = {
-      initializeServer: jest.fn((service, callback) => {
+      initializeServer: vi.fn((service, callback) => {
         callback(null, mockCtx);
       }),
     };
@@ -378,7 +379,7 @@ describe("KerberosAuth with mock GSSAPI", () => {
   it("should handle GSSAPI initialization error", async () => {
     // @ts-expect-error - accessing private property for testing
     auth.kerberos = {
-      initializeServer: jest.fn((service, callback) => {
+      initializeServer: vi.fn((service, callback) => {
         callback(new Error("Keytab not found"), null);
       }),
     };
@@ -396,13 +397,13 @@ describe("KerberosAuth with mock GSSAPI", () => {
   it("should handle GSSAPI step error", async () => {
     const mockCtx = {
       username: "",
-      step: jest.fn((token, callback) => {
+      step: vi.fn((token, callback) => {
         callback(new Error("Invalid token"), null);
       }),
     };
     // @ts-expect-error - accessing private property for testing
     auth.kerberos = {
-      initializeServer: jest.fn((service, callback) => {
+      initializeServer: vi.fn((service, callback) => {
         callback(null, mockCtx);
       }),
     };

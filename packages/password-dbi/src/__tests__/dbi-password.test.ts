@@ -1,3 +1,4 @@
+import { vi } from "vitest";
 /**
  * DBI Password module tests
  */
@@ -15,11 +16,11 @@ describe("DBIPassword", () => {
   let db: ReturnType<typeof PerlDBI>;
 
   const mockLogger: LLNG_Logger = {
-    error: jest.fn(),
-    warn: jest.fn(),
-    notice: jest.fn(),
-    info: jest.fn(),
-    debug: jest.fn(),
+    error: vi.fn(),
+    warn: vi.fn(),
+    notice: vi.fn(),
+    info: vi.fn(),
+    debug: vi.fn(),
   };
 
   beforeAll(async () => {
@@ -78,7 +79,7 @@ describe("DBIPassword", () => {
   });
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     passwordModule = new DBIPassword();
   });
 

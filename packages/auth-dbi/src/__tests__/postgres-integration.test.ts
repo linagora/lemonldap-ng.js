@@ -1,3 +1,4 @@
+import { vi } from "vitest";
 /**
  * PostgreSQL Integration tests for DBI Authentication module
  * These tests only run in CI environment where PostgreSQL is available
@@ -20,11 +21,11 @@ describeIf("DBIAuth PostgreSQL Integration", () => {
   let authModule: DBIAuth;
 
   const mockLogger: LLNG_Logger = {
-    error: jest.fn(),
-    warn: jest.fn(),
-    notice: jest.fn(),
-    info: jest.fn(),
-    debug: jest.fn(),
+    error: vi.fn(),
+    warn: vi.fn(),
+    notice: vi.fn(),
+    info: vi.fn(),
+    debug: vi.fn(),
   };
 
   const pgConfig = {
@@ -37,7 +38,7 @@ describeIf("DBIAuth PostgreSQL Integration", () => {
   } as unknown as LLNG_Conf;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     authModule = new DBIAuth();
   });
 

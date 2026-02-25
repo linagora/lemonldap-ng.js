@@ -1,3 +1,4 @@
+import { vi } from "vitest";
 import { LDAPConnection } from "../ldap-connection";
 import { createTestLDAPServer, TestLDAPServer } from "./test-ldap-server";
 import type { LLNG_Logger } from "@lemonldap-ng/types";
@@ -7,11 +8,11 @@ describe("LDAPConnection", () => {
   let connection: LDAPConnection;
 
   const mockLogger: LLNG_Logger = {
-    error: jest.fn(),
-    warn: jest.fn(),
-    notice: jest.fn(),
-    info: jest.fn(),
-    debug: jest.fn(),
+    error: vi.fn(),
+    warn: vi.fn(),
+    notice: vi.fn(),
+    info: vi.fn(),
+    debug: vi.fn(),
   };
 
   beforeAll(async () => {
@@ -23,7 +24,7 @@ describe("LDAPConnection", () => {
   });
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   afterEach(async () => {
