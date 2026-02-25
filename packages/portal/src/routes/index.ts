@@ -46,7 +46,10 @@ export function createRoutes(portal: Portal): Router {
   // Add security headers middleware
   router.use((req, res, next) => {
     if (conf.strictTransportSecurityMax_Age) {
-      res.setHeader("Strict-Transport-Security", `max-age=${conf.strictTransportSecurityMax_Age}`);
+      res.setHeader(
+        "Strict-Transport-Security",
+        `max-age=${conf.strictTransportSecurityMax_Age}`,
+      );
     }
     next();
   });
@@ -62,7 +65,10 @@ export function createRoutes(portal: Portal): Router {
         logger.info(`Session ${req.llngSessionId} logged out via query`);
       }
       // Clear cookie by setting it to empty with past expiration
-      res.setHeader("Set-Cookie", `${cookieName}=; Path=/; Domain=${conf.domain}; Max-Age=0`);
+      res.setHeader(
+        "Set-Cookie",
+        `${cookieName}=; Path=/; Domain=${conf.domain}; Max-Age=0`,
+      );
       if (wantsJson(req)) {
         return res.json({ result: 1 });
       }
@@ -73,7 +79,10 @@ export function createRoutes(portal: Portal): Router {
     // Already authenticated?
     if (req.llngSession) {
       // Set authenticated user header
-      res.setHeader("Lm-Remote-User", String(req.llngSession.uid || req.llngSession._user || ""));
+      res.setHeader(
+        "Lm-Remote-User",
+        String(req.llngSession.uid || req.llngSession._user || ""),
+      );
 
       // Check for URL redirect
       const urlParam = req.query.url as string | undefined;
@@ -91,7 +100,10 @@ export function createRoutes(portal: Portal): Router {
       }
 
       if (wantsJson(req)) {
-        return res.json({ result: 1, user: req.llngSession.uid || req.llngSession._user });
+        return res.json({
+          result: 1,
+          user: req.llngSession.uid || req.llngSession._user,
+        });
       }
       const html = portal.render("menu", {
         session: req.llngSession,
@@ -150,7 +162,10 @@ export function createRoutes(portal: Portal): Router {
         return res.redirect(req.llngUrldc);
       }
       if (wantsJson(req)) {
-        return res.json({ result: 1, user: req.llngSession.uid || req.llngSession._user });
+        return res.json({
+          result: 1,
+          user: req.llngSession.uid || req.llngSession._user,
+        });
       }
       const html = portal.render("menu", {
         session: req.llngSession,
@@ -163,7 +178,9 @@ export function createRoutes(portal: Portal): Router {
     if (!req.llngAuthResult?.success) {
       // Auth failed
       if (wantsJson(req)) {
-        return res.status(401).json({ result: 0, error: req.llngAuthResult?.errorCode || 5 });
+        return res
+          .status(401)
+          .json({ result: 0, error: req.llngAuthResult?.errorCode || 5 });
       }
       // Show login form with error (error code 5 = bad credentials)
       const html = portal.render("login", {

@@ -64,7 +64,8 @@ export class Portal {
 
     // Load userDB module ("Same" means use the same as authentication)
     const userDBConf = this.conf.userDB || "Demo";
-    const userDBType = userDBConf.toLowerCase() === "same" ? authType : userDBConf.toLowerCase();
+    const userDBType =
+      userDBConf.toLowerCase() === "same" ? authType : userDBConf.toLowerCase();
     await this.loadUserDBModule(userDBType);
 
     // Load password module (if configured and not "Null")
@@ -275,7 +276,19 @@ export class Portal {
    */
   render(template: string, context: Record<string, any> = {}): string {
     // Get available languages from config or use defaults
-    const defaultLangs = ["en", "fr", "de", "es", "it", "pt", "nl", "ar", "he", "zh", "ru"];
+    const defaultLangs = [
+      "en",
+      "fr",
+      "de",
+      "es",
+      "it",
+      "pt",
+      "nl",
+      "ar",
+      "he",
+      "zh",
+      "ru",
+    ];
     const availableLanguages = this.conf?.languages || defaultLangs;
 
     return this.templateEngine!.render(template, {
