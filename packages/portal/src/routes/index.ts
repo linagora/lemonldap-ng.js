@@ -4,6 +4,34 @@ import type { Portal } from "../portal";
 import type { LLNG_Session } from "@lemonldap-ng/types";
 
 /**
+ * Portal error codes (PE_* constants from LLNG)
+ */
+const PE_CODES: Record<string, number> = {
+  PE_OK: 0,
+  PE_SESSIONEXPIRED: 1,
+  PE_FORMEMPTY: 2,
+  PE_WRONGMANAGERACCOUNT: 3,
+  PE_USERNOTFOUND: 4,
+  PE_BADCREDENTIALS: 5,
+  PE_LDAPCONNECTFAILED: 6,
+  PE_LDAPERROR: 7,
+  PE_APACHESESSIONERROR: 8,
+  PE_FIRSTACCESS: 9,
+  PE_BADCERTIFICATE: 10,
+  PE_BADURL: 37,
+  PE_UNPROTECTEDURL: 109,
+};
+
+/**
+ * Convert error code to numeric value for templates
+ */
+function toNumericErrorCode(code: string | number | undefined): number {
+  if (code === undefined) return 5; // default to PE_BADCREDENTIALS
+  if (typeof code === "number") return code;
+  return PE_CODES[code] ?? (parseInt(code, 10) || 5);
+}
+
+/**
  * Check if request wants JSON response
  */
 function wantsJson(req: Request): boolean {
@@ -180,12 +208,12 @@ export function createRoutes(portal: Portal): Router {
       if (wantsJson(req)) {
         return res
           .status(401)
-          .json({ result: 0, error: req.llngAuthResult?.errorCode || 5 });
+          .json({ result: 0, error: toNumericErrorCode(req.llngAuthResult?.errorCode) });
       }
       // Show login form with error (error code 5 = bad credentials)
       const html = portal.render("login", {
         AUTH_ERROR: req.llngAuthResult?.error || "Authentication failed",
-        AUTH_ERROR_CODE: req.llngAuthResult?.errorCode || 5,
+        AUTH_ERROR_CODE: toNumericErrorCode(req.llngAuthResult?.errorCode),
         LOGIN: req.llngCredentials?.user,
         URLDC: req.llngUrldc || req.body?.url,
         FAVICON: conf.portalFavicon,
