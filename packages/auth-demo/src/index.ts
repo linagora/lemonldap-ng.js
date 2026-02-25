@@ -78,7 +78,7 @@ export class DemoAuth implements AuthModule {
       return {
         success: false,
         error: "User not found",
-        errorCode: "PE_BADCREDENTIALS",
+        errorCode: 5, // PE_BADCREDENTIALS
       };
     }
 
@@ -89,7 +89,7 @@ export class DemoAuth implements AuthModule {
       return {
         success: false,
         error: "Invalid password",
-        errorCode: "PE_BADCREDENTIALS",
+        errorCode: 5, // PE_BADCREDENTIALS
       };
     }
 
