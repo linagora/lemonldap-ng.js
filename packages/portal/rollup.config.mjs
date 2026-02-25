@@ -20,18 +20,23 @@ const alwaysExt = [
   "path",
 ];
 
-// Copy template files
-function copyTemplates() {
+// Copy template and static files
+function copyAssets() {
   return {
-    name: "copy-templates",
+    name: "copy-assets",
     buildEnd() {
+      // Copy templates
       mkdirSync("lib/templates/views", { recursive: true });
       cpSync("src/templates/views", "lib/templates/views", { recursive: true });
+
+      // Copy static files (js, languages, common)
+      mkdirSync("lib/static", { recursive: true });
+      cpSync("src/static", "lib/static", { recursive: true });
     },
   };
 }
 
-const commonPlugins = [typescript(), commonjs(), copyTemplates()];
+const commonPlugins = [typescript(), commonjs(), copyAssets()];
 
 function configure(esm) {
   return {
