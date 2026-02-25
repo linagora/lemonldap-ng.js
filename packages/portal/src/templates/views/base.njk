@@ -147,5 +147,17 @@
     {% block content %}{% endblock %}
     <span id="languages"></span>
   </div>
+  <script type="application/init">
+  {
+    "language": "{{ lang | default('en') }}",
+    "staticPrefix": "/static/",
+    "trOver": { "all": {}, "{{ lang | default('en') }}": {} }
+  }
+  </script>
+  <script>
+    window.availableLanguages = {{ availableLanguages | default(['en', 'fr']) | dump | safe }};
+    window.staticPrefix = '/static/';
+  </script>
+  <script src="/static/js/portal.js"></script>
 </body>
 </html>
