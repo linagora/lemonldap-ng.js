@@ -80,7 +80,11 @@ async function main() {
       useRealPortal = true;
       log("info", "Real Portal initialized successfully", options);
     } else {
-      log("warn", `Config not found at ${configFile}, using fallback mode`, options);
+      log(
+        "warn",
+        `Config not found at ${configFile}, using fallback mode`,
+        options,
+      );
     }
   } catch (e) {
     log("warn", `Failed to initialize Portal: ${e.message}`, options);
@@ -91,7 +95,11 @@ async function main() {
 
   // Health check endpoint (before other middleware)
   app.get("/health", (req, res) => {
-    res.json({ status: "ok", tmpDir: options.tmpDir, realPortal: useRealPortal });
+    res.json({
+      status: "ok",
+      tmpDir: options.tmpDir,
+      realPortal: useRealPortal,
+    });
   });
 
   // Serve static files (languages, icons, js)
@@ -174,13 +182,48 @@ function setupFallbackServer(app, options) {
 
   // Demo users
   const demoUsers = {
-    dwho: { _password: "dwho", uid: "dwho", cn: "Doctor Who", mail: "dwho@badwolf.org" },
-    rtyler: { _password: "rtyler", uid: "rtyler", cn: "Rose Tyler", mail: "rtyler@badwolf.org" },
-    msmith: { _password: "msmith", uid: "msmith", cn: "Mickey Smith", mail: "msmith@badwolf.org" },
-    french: { _password: "french", uid: "french", cn: "Frédéric Accents", mail: "fa@badwolf.org" },
-    russian: { _password: "russian", uid: "russian", cn: "Русский", mail: "ru@badwolf.org" },
-    davros: { _password: "davros", uid: "davros", cn: "Bad Guy", mail: "davros@badguy.org" },
-    dalek: { _password: "dalek", uid: "dalek", cn: "The Daleks", mail: "dalek@badguy.org" },
+    dwho: {
+      _password: "dwho",
+      uid: "dwho",
+      cn: "Doctor Who",
+      mail: "dwho@badwolf.org",
+    },
+    rtyler: {
+      _password: "rtyler",
+      uid: "rtyler",
+      cn: "Rose Tyler",
+      mail: "rtyler@badwolf.org",
+    },
+    msmith: {
+      _password: "msmith",
+      uid: "msmith",
+      cn: "Mickey Smith",
+      mail: "msmith@badwolf.org",
+    },
+    french: {
+      _password: "french",
+      uid: "french",
+      cn: "Frédéric Accents",
+      mail: "fa@badwolf.org",
+    },
+    russian: {
+      _password: "russian",
+      uid: "russian",
+      cn: "Русский",
+      mail: "ru@badwolf.org",
+    },
+    davros: {
+      _password: "davros",
+      uid: "davros",
+      cn: "Bad Guy",
+      mail: "davros@badguy.org",
+    },
+    dalek: {
+      _password: "dalek",
+      uid: "dalek",
+      cn: "The Daleks",
+      mail: "dalek@badguy.org",
+    },
   };
 
   // Middlewares
@@ -329,7 +372,10 @@ function setupFallbackServer(app, options) {
     }
 
     if (config.strictTransportSecurityMax_Age) {
-      res.setHeader("Strict-Transport-Security", `max-age=${config.strictTransportSecurityMax_Age}`);
+      res.setHeader(
+        "Strict-Transport-Security",
+        `max-age=${config.strictTransportSecurityMax_Age}`,
+      );
     }
 
     if (isHtmlRequest) {
