@@ -11,7 +11,7 @@ const alwaysExt = [
   "express",
 ];
 
-const commonPlugins = [typescript(), commonjs()];
+const commonPlugins = [typescript({ exclude: ["**/*.test.ts"] }), commonjs()];
 
 function configure(esm) {
   return {

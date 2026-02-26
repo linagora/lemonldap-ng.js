@@ -284,10 +284,11 @@ expect.extend({
   },
 });
 
-declare global {
-  namespace jest {
-    interface Matchers<R> {
-      toStartWith(expected: string): R;
-    }
+declare module "vitest" {
+  interface Assertion<T = unknown> {
+    toStartWith(expected: string): T;
+  }
+  interface AsymmetricMatchersContaining {
+    toStartWith(expected: string): unknown;
   }
 }
