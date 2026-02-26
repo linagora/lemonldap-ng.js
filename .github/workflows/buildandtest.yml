@@ -152,7 +152,7 @@ jobs:
           done
 
       - name: Test JS RP with Perl OP
-        run: npx vitest run test/interop/oidc-perl-op.test.ts
+        run: npx vitest run test/interop/oidc-perl-op.test.ts --config vitest.interop.config.ts
 
       - name: Show Perl OP logs on failure
         if: failure()
@@ -177,7 +177,7 @@ jobs:
           done
 
       - name: Test JS OP with Perl RP
-        run: npx vitest run test/interop/oidc-perl-rp.test.ts
+        run: npx vitest run test/interop/oidc-perl-rp.test.ts --config vitest.interop.config.ts
 
       - name: Show Perl RP logs on failure
         if: failure()
