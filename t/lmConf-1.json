@@ -1,0 +1,149 @@
+{
+  "applicationList": {
+    "0001-cat": {
+      "catname": "Sample applications",
+      "0002-app": {
+        "options": {
+          "description": "A simple application displaying authenticated user",
+          "display": "auto",
+          "logo": "demo.png",
+          "name": "Application Test 1",
+          "uri": "http://test1.example.com/",
+          "tooltip": ""
+        },
+        "type": "application"
+      },
+      "0003-app": {
+        "options": {
+          "description": "",
+          "display": "auto",
+          "logo": "thumbnail.png",
+          "name": "Application Test 2",
+          "uri": "http://test2.example.com/",
+          "tooltip": "A nice application!"
+        },
+        "type": "application"
+      },
+      "type": "category"
+    }
+  },
+  "authentication": "Demo",
+  "cfgAuthor": "The LemonLDAP::NG team",
+  "cfgAuthorIP": "127.0.0.1",
+  "cfgDate": 1428138808,
+  "cfgLog": "Handler test conf",
+  "cfgNum": "1",
+  "cookieName": "lemonldap",
+  "demoExportedVars": {
+    "cn": "cn",
+    "mail": "mail",
+    "uid": "uid"
+  },
+  "domain": "example.com",
+  "exportedHeaders": {
+    "test1.example.com": {
+      "Auth-User": "$uid",
+      "testHeader1": "'testHeader_value'",
+      "testHeader2": "' '",
+      "emptyHeader": "''"
+    },
+    "test2.example.com": {
+      "Auth-User": "$uid"
+    },
+    "*.example.llng": {
+      "Auth-User": "$uid",
+      "testHeader1": "'testHeader_value'"
+    },
+    "%.oneonly.llng": {
+      "Auth-User": "$uid",
+      "testHeader1": "'testHeader_value'"
+    }
+  },
+  "exportedVars": {
+    "mail": "mail",
+    "uid": "uid",
+    "cn": "cn"
+  },
+  "globalStorage": "Apache::Session::File",
+  "globalStorageOptions": {
+    "Directory": "t/sessions",
+    "LockDirectory": "t/sessions/lock",
+    "generateModule": "Lemonldap::NG::Common::Apache::Session::Generate::SHA256"
+  },
+  "groups": {
+    "su": "$uid and $uid =~ /(?:rtyler|dwho)/",
+    "test_su": "$uid and $uid eq \"rtyler\"",
+    "su_test": "$uid and $uid eq \"rtyler\""
+  },
+  "key": "qwertyui",
+  "locationRules": {
+    "auth.example.com": {
+      "(?#checkUser)^/checkuser": "$uid eq \"dwho\" or $uid eq \"msmith\" or $uid eq \"french\"",
+      "(?#errors)^/lmerror/": "accept",
+      "default": "accept"
+    },
+    "manager.example.com": {
+      "(?#Configuration)^/(manager\\.html|conf/)": "$uid eq \"dwho\"",
+      "(?#Notifications)^/notifications": "$uid eq \"dwho\" or $uid eq \"rtyler\"",
+      "(?#Sessions)^/sessions": "$uid eq \"dwho\" or $uid eq \"rtyler\"",
+      "default": "$uid eq \"dwho\""
+    },
+    "test1.example.com": {
+      "^/logout": "logout_sso",
+      "^/test-restricted_uri": "varIsInUri($ENV{REQUEST_URI}, '/test-restricted_uri/', \"$uid/\", 1)",
+      "^/deny": "deny",
+      "^/level3": "$authenticationLevel>2",
+      "default": "accept"
+    },
+    "test2.example.com": {
+      "^/logout": "logout_sso",
+      "default": "accept"
+    },
+    "test.example.org": {
+      "default": "accept"
+    },
+    "*.example.llng": {
+      "default": "accept"
+    },
+    "%.oneonly.llng": {
+      "default": "accept"
+    }
+  },
+  "macros": {
+    "_whatToTrace": "$_auth eq 'SAML' ? \"$_user\\@$_idpConfKey\" : \"$_user\"",
+    "array": "$uid eq 'french' ? 'doctor; who' : ''",
+    "authMode": "$authenticationLevel == 8 ? 'TOTP' : 'DEMO'",
+    "zeAUTHMODE_authmode": "$authMode. '_' . lc $authMode"
+  },
+  "notifications": 0,
+  "passwordDB": "Null",
+  "portal": "http://auth.example.com/",
+  "portalDisplayResetPassword": 0,
+  "casStorage": "Apache::Session::File",
+  "casStorageOptions": {
+    "Directory": "t/sessions/saml",
+    "LockDirectory": "t/sessions/saml/lock",
+    "generateModule": "Lemonldap::NG::Common::Apache::Session::Generate::SHA256"
+  },
+  "samlStorage": "Apache::Session::File",
+  "samlStorageOptions": {
+    "Directory": "t/sessions/saml",
+    "LockDirectory": "t/sessions/saml/lock",
+    "generateModule": "Lemonldap::NG::Common::Apache::Session::Generate::SHA256"
+  },
+  "oidcStorage": "Apache::Session::File",
+  "oidcStorageOptions": {
+    "Directory": "t/sessions/saml",
+    "LockDirectory": "t/sessions/saml/lock",
+    "generateModule": "Lemonldap::NG::Common::Apache::Session::Generate::SHA256"
+  },
+  "reloadUrls": {},
+  "requireToken": 0,
+  "userDB": "Same",
+  "vhostOptions": {
+    "test2.example.com": {
+      "vhostType": "AuthBasic"
+    }
+  },
+  "whatToTrace": "_whatToTrace"
+}

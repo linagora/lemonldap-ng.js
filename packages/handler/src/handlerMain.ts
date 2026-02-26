@@ -254,22 +254,44 @@ class LemonldapNGHandler extends HandlerInit {
   ) {
     return new Promise<boolean>((resolve, reject) => {
       const vhost = this.resolveAlias(req);
-      if (!Object.prototype.hasOwnProperty.call(this.tsv.defaultCondition, vhost)) {
+      // Use hasOwnProperty to prevent prototype pollution attacks
+      // (e.g., vhost = "constructor" or "__proto__")
+      if (
+        !Object.prototype.hasOwnProperty.call(
+          this.tsv.defaultCondition,
+          vhost,
+        ) ||
+        !this.tsv.defaultCondition[vhost]
+      ) {
         return reject(
           `No configuration found for ${vhost} (or not listed in Node.js virtualHosts)`,
         );
       }
-      if (this.tsv.locationRegexp[vhost]) {
+      // Validate locationRegexp exists as own property before accessing
+      if (
+        Object.prototype.hasOwnProperty.call(this.tsv.locationRegexp, vhost) &&
+        this.tsv.locationRegexp[vhost]
+      ) {
         for (let i = 0; i < this.tsv.locationRegexp[vhost].length; i++) {
           const regex = this.tsv.locationRegexp[vhost][i];
           if (regex.test(uri)) {
-            return resolve(this.tsv.locationCondition[vhost][i](req, session));
+            // Validate condition function exists before calling
+            const conditionFn = this.tsv.locationCondition[vhost]?.[i];
+            if (typeof conditionFn !== "function") {
+              return reject(
+                `Invalid location condition for ${vhost} at index ${i}`,
+              );
+            }
+            return resolve(conditionFn(req, session));
           }
         }
       }
-      this.tsv.defaultCondition[vhost](req, session)
-        ? resolve(true)
-        : reject("Unauthorized");
+      // Validate vhost exists in defaultCondition before calling
+      const defaultConditionFn = this.tsv.defaultCondition[vhost];
+      if (typeof defaultConditionFn !== "function") {
+        return reject(`No default condition for vhost: ${vhost}`);
+      }
+      defaultConditionFn(req, session) ? resolve(true) : reject("Unauthorized");
     });
   }
 

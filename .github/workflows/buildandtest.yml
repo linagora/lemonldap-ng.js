@@ -5,30 +5,187 @@ permissions:
 
 on:
   push:
-    branches: [master]
-  pull_request:
-    branches: [master]
   workflow_dispatch:
 
 jobs:
+  lint:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Use Node.js 22.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: 22.x
+
+      - name: Install ldap-utils, PostgreSQL client and liblasso
+        run: sudo apt-get update && sudo apt-get install -y liblasso3-dev libxml2-dev libxmlsec1-dev libglib2.0-dev
+
+      - name: Install dependencies
+        run: npm ci || npm i
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Format check
+        run: npm run format:check
+
   build-and-test:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
         node-version: [22.x, 20.x]
+
+    services:
+      ldap:
+        image: osixia/openldap:1.5.0
+        ports:
+          - 3890:389
+        env:
+          LDAP_ORGANISATION: "Example Inc"
+          LDAP_DOMAIN: "example.com"
+          LDAP_ADMIN_PASSWORD: "admin"
+          LDAP_CONFIG_PASSWORD: "config"
+          LDAP_READONLY_USER: "false"
+        options: >-
+          --health-cmd "ldapsearch -x -H ldap://localhost -b dc=example,dc=com -D cn=admin,dc=example,dc=com -w admin"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
+      postgres:
+        image: postgres:16
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: llng
+          POSTGRES_PASSWORD: llng
+          POSTGRES_DB: llng_test
+        options: >-
+          --health-cmd "pg_isready -U llng"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - uses: actions/checkout@v3
+
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
+
       - run: npm --version
+
+      - name: Install ldap-utils, PostgreSQL client and liblasso
+        run: sudo apt-get update && sudo apt-get install -y ldap-utils postgresql-client liblasso3-dev libxml2-dev libxmlsec1-dev libglib2.0-dev
+
+      - name: Wait for LDAP to be ready
+        run: |
+          for i in {1..30}; do
+            if ldapsearch -x -H ldap://localhost:3890 -b dc=example,dc=com -D cn=admin,dc=example,dc=com -w admin > /dev/null 2>&1; then
+              echo "LDAP is ready"
+              break
+            fi
+            echo "Waiting for LDAP... ($i/30)"
+            sleep 2
+          done
+
+      - name: Setup LDAP test data
+        run: |
+          ldapadd -x -H ldap://localhost:3890 -D "cn=admin,dc=example,dc=com" -w admin -f test/ldap-test-data.ldif || true
+
+      - name: Setup PostgreSQL test data
+        run: |
+          PGPASSWORD=llng psql -h localhost -U llng -d llng_test -f test/postgres-test-data.sql || true
+
       - name: Install dependencies
         run: npm ci || npm i
+
       - name: Build
         run: npm run build
+
       - name: Test
         run: npm run test
+        env:
+          LDAP_TEST_URL: ldap://localhost:3890
+          LDAP_TEST_BASE: dc=example,dc=com
+          LDAP_TEST_ADMIN_DN: cn=admin,dc=example,dc=com
+          LDAP_TEST_ADMIN_PASSWORD: admin
+          POSTGRES_TEST_HOST: localhost
+          POSTGRES_TEST_PORT: 5432
+          POSTGRES_TEST_USER: llng
+          POSTGRES_TEST_PASSWORD: llng
+          POSTGRES_TEST_DATABASE: llng_test
+
+  interop-tests:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Use Node.js 22.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: 22.x
+
+      - name: Install liblasso
+        run: sudo apt-get update && sudo apt-get install -y liblasso3-dev libxml2-dev libxmlsec1-dev libglib2.0-dev
+
+      - name: Install dependencies
+        run: npm ci || npm i
+
+      - name: Build
+        run: npm run build
+
+      - name: Start Perl OP container
+        run: docker compose -f test/interop/docker-compose.perl-op.yml up -d
+
+      - name: Wait for Perl OP to be ready
+        run: |
+          for i in {1..30}; do
+            if curl -s http://localhost:19080/.well-known/openid-configuration > /dev/null 2>&1; then
+              echo "Perl OP is ready"
+              break
+            fi
+            echo "Waiting for Perl OP... ($i/30)"
+            sleep 2
+          done
+
+      - name: Test JS RP with Perl OP
+        run: npx vitest run test/interop/oidc-perl-op.test.ts
+
+      - name: Show Perl OP logs on failure
+        if: failure()
+        run: docker logs llng-perl-op 2>&1 | tail -100
+
+      - name: Stop Perl OP container
+        if: always()
+        run: docker compose -f test/interop/docker-compose.perl-op.yml down
+
+      - name: Start Perl RP container
+        run: docker compose -f test/interop/docker-compose.perl-rp.yml up -d
+
+      - name: Wait for Perl RP to be ready
+        run: |
+          for i in {1..30}; do
+            if curl -s http://localhost:19081/ > /dev/null 2>&1; then
+              echo "Perl RP is ready"
+              break
+            fi
+            echo "Waiting for Perl RP... ($i/30)"
+            sleep 2
+          done
+
+      - name: Test JS OP with Perl RP
+        run: npx vitest run test/interop/oidc-perl-rp.test.ts
+
+      - name: Show Perl RP logs on failure
+        if: failure()
+        run: docker logs llng-perl-rp 2>&1 | tail -100
+
+      - name: Stop Perl RP container
+        if: always()
+        run: docker compose -f test/interop/docker-compose.perl-rp.yml down
 
   audit:
     runs-on: ubuntu-22.04
