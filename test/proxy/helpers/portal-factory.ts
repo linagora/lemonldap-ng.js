@@ -5,10 +5,9 @@
  * authentication and issuer modules.
  */
 
-import * as express from "express";
-import { Express, Router, Request, Response, NextFunction } from "express";
+import express, { Express, Router, Request, Response, NextFunction } from "express";
 import { Server } from "http";
-import * as cookieParser from "cookie-parser";
+import cookieParser from "cookie-parser";
 import {
   generateTestKeys,
   silentLogger,

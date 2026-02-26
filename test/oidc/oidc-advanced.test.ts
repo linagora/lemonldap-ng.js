@@ -86,6 +86,7 @@ describe("Advanced OIDC Tests", () => {
           oidcRPMetaDataOptionsRedirectUris: [RP_CALLBACK],
           oidcRPMetaDataOptionsBypassConsent: true,
           oidcRPMetaDataOptionsRequirePKCE: true,
+          oidcRPMetaDataOptionsPublic: true,
         },
       },
       oidcRPMetaDataExportedVars: {
