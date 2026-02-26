@@ -152,7 +152,7 @@ jobs:
           done
 
       - name: Test JS RP with Perl OP
-        run: npx jest test/interop/oidc-perl-op.test.ts --testTimeout=30000
+        run: npx vitest run test/interop/oidc-perl-op.test.ts
 
       - name: Show Perl OP logs on failure
         if: failure()
@@ -177,7 +177,7 @@ jobs:
           done
 
       - name: Test JS OP with Perl RP
-        run: npx jest test/interop/oidc-perl-rp.test.ts --testTimeout=30000
+        run: npx vitest run test/interop/oidc-perl-rp.test.ts
 
       - name: Show Perl RP logs on failure
         if: failure()
