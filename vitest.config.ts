@@ -9,6 +9,12 @@ export default defineConfig({
       "packages/*/test/**/*.test.ts",
       "test/**/*.test.ts",
     ],
+    exclude: [
+      "**/node_modules/**",
+      "**/dist/**",
+      // Interop tests require Docker containers and run in dedicated CI job
+      "test/interop/**/*.test.ts",
+    ],
     coverage: {
       provider: "v8",
       reporter: ["text", "lcov"],
