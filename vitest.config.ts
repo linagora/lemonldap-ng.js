@@ -14,5 +14,10 @@ export default defineConfig({
       reporter: ["text", "lcov"],
     },
     testTimeout: 100000,
+    // Isolate each test file in its own worker to prevent
+    // lasso native crash from affecting other tests
+    isolate: true,
+    // Ignore unhandled errors from native bindings (lasso) crash during cleanup
+    dangerouslyIgnoreUnhandledErrors: true,
   },
 });

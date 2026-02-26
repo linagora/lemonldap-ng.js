@@ -15,8 +15,7 @@
  */
 
 import * as http from "http";
-import * as express from "express";
-import { Express } from "express";
+import express, { Express } from "express";
 import { Server } from "http";
 import { OIDCProvider } from "../../packages/issuer-oidc/src/provider";
 import { createOIDCRouter } from "../../packages/issuer-oidc/src/router";

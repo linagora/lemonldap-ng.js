@@ -15,7 +15,8 @@ describe("OIDC-OIDC Proxy", () => {
 
   beforeAll(async () => {
     // Create testbed with OIDC on both frontend and backend
-    testbed = await createOIDCOIDCTestbed();
+    // Port offset 30 to avoid conflicts with OIDC unit tests (19080, 19082)
+    testbed = await createOIDCOIDCTestbed(30);
     await testbed.start();
     client = new TestHttpClient();
   }, 30000);

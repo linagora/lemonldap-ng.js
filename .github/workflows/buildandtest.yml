@@ -187,6 +187,52 @@ jobs:
         if: always()
         run: docker compose -f test/interop/docker-compose.perl-rp.yml down
 
+  perl-tests:
+    runs-on: ubuntu-latest
+    container:
+      image: debian:testing
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install system dependencies
+        run: |
+          apt-get update
+          apt-get install -y --install-recommends \
+            nodejs npm \
+            liblemonldap-ng-portal-perl \
+            fonts-urw-base35 \
+            libauth-yubikey-webclient-perl \
+            libauthen-radius-perl \
+            libdatetime-format-rfc3339-perl \
+            libdbd-sqlite3-perl \
+            libgd-securityimage-perl \
+            libglib-perl \
+            libgssapi-perl \
+            libimage-magick-perl \
+            liblasso-perl \
+            liblog-log4perl-perl \
+            liblwp-protocol-psgi-perl \
+            libnet-openid-consumer-perl \
+            libnet-openid-server-perl \
+            libprotocol-websocket-perl \
+            libsoap-lite-perl \
+            libtest-leaktrace-perl \
+            libtest-output-perl \
+            libtest-pod-perl \
+            libtime-fake-perl \
+            libxml-libxslt-perl
+
+      - name: Install Node.js dependencies
+        run: npm ci || npm i
+
+      - name: Build
+        run: npm run build
+
+      - name: Run Perl tests
+        run: prove -v t/*.t
+        env:
+          PERL5LIB: .
+
   audit:
     runs-on: ubuntu-22.04
     strategy:
