@@ -199,6 +199,7 @@ jobs:
           apt-get update
           apt-get install -y --install-recommends \
             nodejs npm \
+            build-essential python3-setuptools \
             liblemonldap-ng-portal-perl \
             fonts-urw-base35 \
             libauth-yubikey-webclient-perl \

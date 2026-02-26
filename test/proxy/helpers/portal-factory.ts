@@ -5,7 +5,13 @@
  * authentication and issuer modules.
  */
 
-import express, { Express, Router, Request, Response, NextFunction } from "express";
+import express, {
+  Express,
+  Router,
+  Request,
+  Response,
+  NextFunction,
+} from "express";
 import { Server } from "http";
 import cookieParser from "cookie-parser";
 import {
