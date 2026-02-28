@@ -11,6 +11,7 @@ import type {
 } from "./types";
 import { TemplateEngine } from "./templates/engine";
 import { TwoFactorManager } from "./2fa";
+import { PluginManager } from "./plugins";
 
 /**
  * Main Portal class
@@ -26,6 +27,7 @@ export class Portal {
   private passwordModule: PasswordModule | null = null;
   private templateEngine: TemplateEngine | null = null;
   private twoFactorManager: TwoFactorManager | null = null;
+  private pluginManager: PluginManager | null = null;
   private options: PortalOptions;
 
   public ready: Promise<boolean>;
@@ -84,6 +86,10 @@ export class Portal {
     // Initialize 2FA manager
     this.twoFactorManager = new TwoFactorManager(this.conf, logger);
     await this.twoFactorManager.init();
+
+    // Initialize plugin manager
+    this.pluginManager = new PluginManager(this.conf, logger);
+    await this.pluginManager.init(this);
 
     return true;
   }
@@ -194,6 +200,21 @@ export class Portal {
    */
   has2FA(): boolean {
     return this.twoFactorManager?.is2FAEnabled() ?? false;
+  }
+
+  /**
+   * Get plugin manager
+   */
+  getPluginManager(): PluginManager {
+    if (!this.pluginManager) throw new Error("Plugin Manager not initialized");
+    return this.pluginManager;
+  }
+
+  /**
+   * Check if any plugins are loaded
+   */
+  hasPlugins(): boolean {
+    return (this.pluginManager?.getAllPlugins().length ?? 0) > 0;
   }
 
   /**
@@ -314,6 +335,9 @@ export class Portal {
     }
     if (this.sessionAcc) {
       await this.sessionAcc.close();
+    }
+    if (this.pluginManager) {
+      await this.pluginManager.close();
     }
     this.logger?.info("Portal closed");
   }

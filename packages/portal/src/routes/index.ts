@@ -2,6 +2,7 @@ import { Router, Response, Request } from "express";
 import type { PortalRequest } from "../types";
 import type { Portal } from "../portal";
 import type { LLNG_Session } from "@lemonldap-ng/types";
+import { PE_OK } from "../plugins";
 
 /**
  * Portal error codes (PE_* constants from LLNG)
@@ -112,6 +113,17 @@ export function createRoutes(portal: Portal): Router {
         String(req.llngSession.uid || req.llngSession._user || ""),
       );
 
+      // Plugin hook: forAuthUser
+      const pluginManager = portal.getPluginManager();
+      const forAuthResult = await pluginManager.executeHook("forAuthUser", req);
+      if (forAuthResult.code !== PE_OK && forAuthResult.stop) {
+        // Plugin wants to take over
+        if (wantsJson(req)) {
+          return res.json({ result: 0, error: forAuthResult.code });
+        }
+        // Let the plugin handle the response via route registration
+      }
+
       // Check for URL redirect
       const urlParam = req.query.url as string | undefined;
       if (urlParam) {
@@ -202,6 +214,26 @@ export function createRoutes(portal: Portal): Router {
       return res.send(html);
     }
 
+    // Plugin hook: beforeAuth (called even if auth already done)
+    const pluginManager = portal.getPluginManager();
+    const beforeAuthResult = await pluginManager.executeHook("beforeAuth", req);
+    if (beforeAuthResult.code !== PE_OK) {
+      if (wantsJson(req)) {
+        return res.status(401).json({
+          result: 0,
+          error: beforeAuthResult.code,
+        });
+      }
+      const html = portal.render("login", {
+        AUTH_ERROR: beforeAuthResult.error || "Authentication blocked",
+        AUTH_ERROR_CODE: beforeAuthResult.code,
+        LOGIN: req.llngCredentials?.user,
+        URLDC: req.llngUrldc || req.body?.url,
+        FAVICON: conf.portalFavicon,
+      });
+      return res.send(html);
+    }
+
     // Check auth result
     if (!req.llngAuthResult?.success) {
       // Auth failed
@@ -281,6 +313,14 @@ export function createRoutes(portal: Portal): Router {
     userDBModule.setSessionInfo(session, req.llngUserData);
     await portal.updateSession(session);
 
+    // Plugin hook: endAuth
+    req.llngSession = session;
+    const endAuthResult = await pluginManager.executeHook("endAuth", req);
+    if (endAuthResult.code !== PE_OK) {
+      logger.warn(`Plugin returned error ${endAuthResult.code} during endAuth`);
+      // Continue anyway - session was already created
+    }
+
     logger.info(`Session created for ${session.uid || session._user}`);
 
     // Set session cookie
@@ -329,6 +369,12 @@ export function createRoutes(portal: Portal): Router {
    * GET /logout - Logout and destroy session
    */
   router.get("/logout", async (req: PortalRequest, res: Response) => {
+    // Plugin hook: beforeLogout
+    const pluginManager = portal.getPluginManager();
+    if (req.llngSession) {
+      await pluginManager.executeHook("beforeLogout", req);
+    }
+
     if (req.llngSessionId) {
       await portal.deleteSession(req.llngSessionId);
       logger.info(`Session ${req.llngSessionId} logged out`);
