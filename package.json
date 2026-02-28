@@ -85,6 +85,7 @@
   "overrides": {
     "tar": "^7.5.8",
     "lodash": "^4.17.23",
-    "fast-xml-parser": "^5.3.6"
+    "fast-xml-parser": "^5.3.6",
+    "serialize-javascript": "^7.0.3"
   }
 }
