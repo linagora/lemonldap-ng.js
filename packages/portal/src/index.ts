@@ -14,6 +14,7 @@ export { TemplateEngine } from "./templates/engine";
 export * from "./types";
 export * from "./middleware";
 export { createRoutes } from "./routes";
+export * from "./plugins";
 
 let currentPortal: Portal | null = null;
 
@@ -69,6 +70,10 @@ export function middleware(portal?: Portal): Router {
   if (p.has2FA()) {
     router.use(create2FARoutes(p));
   }
+
+  // Plugin routes
+  const pluginManager = p.getPluginManager();
+  pluginManager.registerRoutes(router);
 
   return router;
 }
