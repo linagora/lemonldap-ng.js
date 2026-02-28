@@ -9,12 +9,12 @@
  * Configuration: cda = 1
  */
 
-import type { PluginContext, PluginResult } from "@lemonldap-ng/portal";
-import { BasePlugin, ok, PE_ERROR, PE_OK } from "@lemonldap-ng/plugin-common";
+import type { PluginResult } from "@lemonldap-ng/portal";
+import { BasePlugin, ok, PE_ERROR } from "@lemonldap-ng/plugin-common";
 import crypto from "crypto";
 
 // URL regex to match protocol://host/path
-const URIRE = /^(https?):\/\/([^\/]+)(\/.*)?$/i;
+const URIRE = /^(https?):\/\/([^/]+)(\/.*)?$/i;
 
 /**
  * Extended request interface for CDA

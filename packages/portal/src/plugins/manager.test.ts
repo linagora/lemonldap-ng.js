@@ -74,8 +74,8 @@ class ErrorPlugin implements Plugin {
   }
 }
 
-// Mock failed init plugin
-class FailedInitPlugin implements Plugin {
+// Mock failed init plugin (prefixed with _ as it's for future tests)
+class _FailedInitPlugin implements Plugin {
   readonly name = "FailedInitPlugin";
 
   async init(_context: PluginContext): Promise<boolean> {
