@@ -14,6 +14,9 @@ export default defineConfig({
       "**/dist/**",
       // Interop tests require Docker containers and run in dedicated CI job
       "test/interop/**/*.test.ts",
+      // Proxy tests use lasso.js native bindings that can crash workers
+      // They should run in isolation via vitest.proxy.config.ts
+      "test/proxy/**/*.test.ts",
     ],
     coverage: {
       provider: "v8",

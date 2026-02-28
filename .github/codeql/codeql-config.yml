@@ -1,0 +1,20 @@
+name: "CodeQL Configuration"
+
+# Exclude test files and development scripts from analysis
+paths-ignore:
+  - "test/**"
+  - "packages/*/test/**"
+  - "packages/*/scripts/**"
+  - "**/*.test.ts"
+  - "**/*.spec.ts"
+
+# Query filters to reduce false positives
+query-filters:
+  # Exclude rate limiting alerts for internal routes (SSO portal uses session-based auth)
+  - exclude:
+      id: js/missing-rate-limiting
+
+  # Password hashing in password-dbi follows Perl reference implementation
+  # for compatibility - passwords are hashed by the backend (LDAP/DB)
+  - exclude:
+      id: js/insufficient-password-hash

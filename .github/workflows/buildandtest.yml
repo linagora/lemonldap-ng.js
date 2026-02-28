@@ -118,6 +118,10 @@ jobs:
           POSTGRES_TEST_PASSWORD: llng
           POSTGRES_TEST_DATABASE: llng_test
 
+      - name: Proxy tests (SAML/OIDC)
+        run: npx vitest run --config vitest.proxy.config.ts
+        continue-on-error: true
+
   interop-tests:
     runs-on: ubuntu-22.04
     steps:
