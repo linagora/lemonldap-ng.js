@@ -2,11 +2,12 @@ name: "CodeQL"
 
 on:
   push:
-    branches: [master, main]
+    branches: [master, main, full-portal]
   pull_request:
     branches: [master, main]
   schedule:
     - cron: "0 6 * * 1" # Weekly on Monday at 6am
+  workflow_dispatch: # Allow manual trigger
 
 permissions:
   contents: read
