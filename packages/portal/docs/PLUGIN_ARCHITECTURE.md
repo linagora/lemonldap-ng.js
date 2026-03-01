@@ -28,13 +28,17 @@ class PluginManager {
   private hookRegistry: Map<HookName, Plugin[]>;
 
   async init(portal: Portal): Promise<void>;
-  async executeHook(hookName: HookName, req: PortalRequest): Promise<PluginResult>;
+  async executeHook(
+    hookName: HookName,
+    req: PortalRequest,
+  ): Promise<PluginResult>;
   registerRoutes(router: Router): void;
   async close(): Promise<void>;
 }
 ```
 
 **Responsabilités :**
+
 - Découverte des plugins activés selon la configuration
 - Chargement dynamique des packages npm
 - Enregistrement et exécution des hooks
@@ -48,20 +52,23 @@ Le registre statique des plugins, équivalent à `@pList` en Perl :
 ```typescript
 const pluginRegistry: PluginRegistration[] = [
   { configKeys: "cda", packageName: "@lemonldap-ng/plugin-cda" },
-  { configKeys: "notification", packageName: "@lemonldap-ng/plugin-notifications" },
+  {
+    configKeys: "notification",
+    packageName: "@lemonldap-ng/plugin-notifications",
+  },
   // ... 41 plugins configurés
 ];
 ```
 
 **Structure d'une entrée :**
 
-| Champ | Description |
-|-------|-------------|
-| `configKeys` | Clé(s) de configuration qui active(nt) le plugin |
-| `packageName` | Nom du package npm |
-| `compoundCondition` | Condition composée (OR/AND) sur plusieurs clés |
-| `wildcardPath` | Chemin avec wildcard (ex: `path/*/key`) |
-| `priority` | Ordre de chargement (plus élevé = plus tard) |
+| Champ               | Description                                      |
+| ------------------- | ------------------------------------------------ |
+| `configKeys`        | Clé(s) de configuration qui active(nt) le plugin |
+| `packageName`       | Nom du package npm                               |
+| `compoundCondition` | Condition composée (OR/AND) sur plusieurs clés   |
+| `wildcardPath`      | Chemin avec wildcard (ex: `path/*/key`)          |
+| `priority`          | Ordre de chargement (plus élevé = plus tard)     |
 
 ### 3. Config Checker (`src/plugins/config-checker.ts`)
 
@@ -69,13 +76,17 @@ Utilitaire pour vérifier les conditions d'activation dans la configuration :
 
 ```typescript
 // Chemin simple
-checkConf(conf, "cda") // true si conf.cda est truthy
+checkConf(conf, "cda"); // true si conf.cda est truthy
 
 // Chemin imbriqué
-checkConf(conf, "auth/methods/openid")
+checkConf(conf, "auth/methods/openid");
 
 // Chemin avec wildcard (vérifie tous les RP OIDC)
-checkConf(conf, "oidcRPMetaDataOptions/*/oidcRPMetaDataOptionsAllowNativeSso", "or")
+checkConf(
+  conf,
+  "oidcRPMetaDataOptions/*/oidcRPMetaDataOptionsAllowNativeSso",
+  "or",
+);
 ```
 
 ### 4. Interface Plugin (`src/plugins/types.ts`)
@@ -163,14 +174,14 @@ POST /  (Login)
 
 ### Points d'Insertion des Hooks
 
-| Hook | Moment | Cas d'usage |
-|------|--------|-------------|
-| `beforeAuth` | Avant vérification des credentials | Brute force protection, CAPTCHA |
-| `betweenAuthAndData` | Après auth, avant userDB | Validation additionnelle |
-| `afterData` | Après récupération données utilisateur | Modification des attributs |
-| `endAuth` | Session créée, avant redirection | CDA, notifications |
-| `beforeLogout` | Avant suppression session | Global logout, audit |
-| `forAuthUser` | Utilisateur déjà authentifié | CDA, menu externe |
+| Hook                 | Moment                                 | Cas d'usage                     |
+| -------------------- | -------------------------------------- | ------------------------------- |
+| `beforeAuth`         | Avant vérification des credentials     | Brute force protection, CAPTCHA |
+| `betweenAuthAndData` | Après auth, avant userDB               | Validation additionnelle        |
+| `afterData`          | Après récupération données utilisateur | Modification des attributs      |
+| `endAuth`            | Session créée, avant redirection       | CDA, notifications              |
+| `beforeLogout`       | Avant suppression session              | Global logout, audit            |
+| `forAuthUser`        | Utilisateur déjà authentifié           | CDA, menu externe               |
 
 ## Structure des Packages
 
@@ -181,6 +192,7 @@ POST /  (Login)
 ```
 
 Exemples :
+
 - `@lemonldap-ng/plugin-cda`
 - `@lemonldap-ng/plugin-notifications`
 - `@lemonldap-ng/plugin-brute-force`
@@ -221,15 +233,15 @@ abstract class BasePlugin {
 }
 ```
 
-## Codes de Retour (PE_*)
+## Codes de Retour (PE\_\*)
 
 ```typescript
-const PE_OK = 0;                  // Continuer
-const PE_SESSIONEXPIRED = 1;      // Session expirée
-const PE_FORMEMPTY = 2;           // Formulaire vide
-const PE_USERNOTFOUND = 4;        // Utilisateur non trouvé
-const PE_BADCREDENTIALS = 5;      // Mauvais credentials
-const PE_ERROR = 24;              // Erreur générique
+const PE_OK = 0; // Continuer
+const PE_SESSIONEXPIRED = 1; // Session expirée
+const PE_FORMEMPTY = 2; // Formulaire vide
+const PE_USERNOTFOUND = 4; // Utilisateur non trouvé
+const PE_BADCREDENTIALS = 5; // Mauvais credentials
+const PE_ERROR = 24; // Erreur générique
 // ... etc.
 ```
 
@@ -237,9 +249,9 @@ Un hook retourne `PluginResult` :
 
 ```typescript
 interface PluginResult {
-  code: number;      // PE_OK pour continuer
-  error?: string;    // Message d'erreur
-  stop?: boolean;    // Arrêter le traitement des plugins suivants
+  code: number; // PE_OK pour continuer
+  error?: string; // Message d'erreur
+  stop?: boolean; // Arrêter le traitement des plugins suivants
 }
 ```
 
@@ -280,14 +292,14 @@ export default CDAPlugin;
 
 ## Correspondance Perl ↔ JavaScript
 
-| Perl | JavaScript |
-|------|------------|
-| `@pList` | `pluginRegistry[]` |
-| `checkConf()` | `checkConf()` |
-| `enabledPlugins()` | `PluginManager.init()` |
-| `use constant endAuth => 'method'` | `endAuth?(req): Promise<PluginResult>` |
-| `Lemonldap::NG::Portal::Plugins::*` | `@lemonldap-ng/plugin-*` |
-| `extends 'Lemonldap::NG::Common::Module'` | `extends BasePlugin` |
+| Perl                                      | JavaScript                             |
+| ----------------------------------------- | -------------------------------------- |
+| `@pList`                                  | `pluginRegistry[]`                     |
+| `checkConf()`                             | `checkConf()`                          |
+| `enabledPlugins()`                        | `PluginManager.init()`                 |
+| `use constant endAuth => 'method'`        | `endAuth?(req): Promise<PluginResult>` |
+| `Lemonldap::NG::Portal::Plugins::*`       | `@lemonldap-ng/plugin-*`               |
+| `extends 'Lemonldap::NG::Common::Module'` | `extends BasePlugin`                   |
 
 ## Configuration
 
@@ -309,6 +321,7 @@ customPlugins: "@my-org/plugin-custom, @my-org/plugin-audit"
 ### Condition Composée (SingleSession)
 
 Le plugin SingleSession s'active si une des clés suivantes est vraie :
+
 - `singleSession`
 - `singleIP`
 - `singleUserByIP`

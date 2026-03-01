@@ -149,9 +149,12 @@ export class CDAPlugin extends BasePlugin {
       } else {
         this.error(
           "Session does not contain _httpSession field. " +
-          "Portal must be accessed over HTTPS when using CDA with double cookie"
+            "Portal must be accessed over HTTPS when using CDA with double cookie",
         );
-        return { code: PE_ERROR, error: "CDA requires HTTPS with double cookie" };
+        return {
+          code: PE_ERROR,
+          error: "CDA requires HTTPS with double cookie",
+        };
       }
     }
 

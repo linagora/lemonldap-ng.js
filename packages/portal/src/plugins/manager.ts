@@ -2,7 +2,12 @@ import type { Router } from "express";
 import type { LLNG_Conf, LLNG_Logger } from "@lemonldap-ng/types";
 import type { Portal } from "../portal";
 import type { PortalRequest } from "../types";
-import type { Plugin, PluginContext, PluginResult, PluginRegistration } from "./types";
+import type {
+  Plugin,
+  PluginContext,
+  PluginResult,
+  PluginRegistration,
+} from "./types";
 import { PE_OK } from "./types";
 import { getSortedRegistry } from "./registry";
 import { shouldEnablePlugin } from "./config-checker";
@@ -58,7 +63,9 @@ export class PluginManager {
     const registry = getSortedRegistry();
     const customPlugins = this.getCustomPlugins();
 
-    this.logger.debug(`Plugin system: checking ${registry.length} registered plugins`);
+    this.logger.debug(
+      `Plugin system: checking ${registry.length} registered plugins`,
+    );
 
     // Load plugins from registry
     for (const registration of registry) {
@@ -66,7 +73,7 @@ export class PluginManager {
         this.conf,
         registration.configKeys,
         registration.compoundCondition,
-        registration.wildcardPath
+        registration.wildcardPath,
       );
 
       if (enabled) {
@@ -123,7 +130,9 @@ export class PluginManager {
         const PluginClass = mod.default;
         plugin = new PluginClass();
       } else {
-        throw new Error(`Plugin ${packageName} has no default export or createPlugin function`);
+        throw new Error(
+          `Plugin ${packageName} has no default export or createPlugin function`,
+        );
       }
 
       // Create context
@@ -136,7 +145,9 @@ export class PluginManager {
       // Initialize plugin
       const success = await plugin.init(context);
       if (!success) {
-        this.logger.warn(`Plugin ${plugin.name} initialization returned false, skipping`);
+        this.logger.warn(
+          `Plugin ${plugin.name} initialization returned false, skipping`,
+        );
         return;
       }
 
@@ -149,9 +160,13 @@ export class PluginManager {
       this.logger.debug(`Plugin ${plugin.name} loaded successfully`);
     } catch (error) {
       // Only warn for missing packages (plugin not installed)
-      if ((error as any)?.code === "ERR_MODULE_NOT_FOUND" ||
-          (error as any)?.code === "MODULE_NOT_FOUND") {
-        this.logger.debug(`Plugin package ${packageName} not installed, skipping`);
+      if (
+        (error as any)?.code === "ERR_MODULE_NOT_FOUND" ||
+        (error as any)?.code === "MODULE_NOT_FOUND"
+      ) {
+        this.logger.debug(
+          `Plugin package ${packageName} not installed, skipping`,
+        );
       } else {
         this.logger.error(`Failed to load plugin ${packageName}: ${error}`);
       }
@@ -174,7 +189,9 @@ export class PluginManager {
     for (const hookName of hookNames) {
       if (typeof (plugin as any)[hookName] === "function") {
         this.hookRegistry.get(hookName)!.push(plugin);
-        this.logger.debug(`Plugin ${plugin.name} registered for hook: ${hookName}`);
+        this.logger.debug(
+          `Plugin ${plugin.name} registered for hook: ${hookName}`,
+        );
       }
     }
   }
@@ -183,7 +200,10 @@ export class PluginManager {
    * Execute a lifecycle hook
    * Returns the first non-OK result, or PE_OK if all succeed
    */
-  async executeHook(hookName: HookName, req: PortalRequest): Promise<PluginResult> {
+  async executeHook(
+    hookName: HookName,
+    req: PortalRequest,
+  ): Promise<PluginResult> {
     const plugins = this.hookRegistry.get(hookName) || [];
 
     for (const plugin of plugins) {
@@ -195,13 +215,15 @@ export class PluginManager {
           // Stop on non-OK result or if stop flag is set
           if (result.code !== PE_OK || result.stop) {
             this.logger.debug(
-              `Plugin ${plugin.name}.${hookName} returned code ${result.code}${result.stop ? " (stop)" : ""}`
+              `Plugin ${plugin.name}.${hookName} returned code ${result.code}${result.stop ? " (stop)" : ""}`,
             );
             return result;
           }
         }
       } catch (error) {
-        this.logger.error(`Plugin ${plugin.name}.${hookName} threw error: ${error}`);
+        this.logger.error(
+          `Plugin ${plugin.name}.${hookName} threw error: ${error}`,
+        );
         // Continue with other plugins on error
       }
     }
@@ -219,7 +241,9 @@ export class PluginManager {
           plugin.registerRoutes(router);
           this.logger.debug(`Plugin ${plugin.name} registered routes`);
         } catch (error) {
-          this.logger.error(`Plugin ${plugin.name} failed to register routes: ${error}`);
+          this.logger.error(
+            `Plugin ${plugin.name} failed to register routes: ${error}`,
+          );
         }
       }
     }
@@ -235,7 +259,9 @@ export class PluginManager {
           plugin.registerAuthRoutes(router);
           this.logger.debug(`Plugin ${plugin.name} registered auth routes`);
         } catch (error) {
-          this.logger.error(`Plugin ${plugin.name} failed to register auth routes: ${error}`);
+          this.logger.error(
+            `Plugin ${plugin.name} failed to register auth routes: ${error}`,
+          );
         }
       }
     }
@@ -251,7 +277,9 @@ export class PluginManager {
           plugin.registerUnauthRoutes(router);
           this.logger.debug(`Plugin ${plugin.name} registered unauth routes`);
         } catch (error) {
-          this.logger.error(`Plugin ${plugin.name} failed to register unauth routes: ${error}`);
+          this.logger.error(
+            `Plugin ${plugin.name} failed to register unauth routes: ${error}`,
+          );
         }
       }
     }

@@ -138,6 +138,10 @@ export function ok(): PluginResult {
 /**
  * Helper to create an error plugin result
  */
-export function error(code: number, message?: string, stop = false): PluginResult {
+export function error(
+  code: number,
+  message?: string,
+  stop = false,
+): PluginResult {
   return { code, error: message, stop };
 }

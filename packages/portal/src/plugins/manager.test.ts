@@ -95,7 +95,7 @@ describe("PluginManager", () => {
 
       expect(manager.getAllPlugins()).toHaveLength(0);
       expect(mockLogger.info).toHaveBeenCalledWith(
-        expect.stringContaining("0 plugins loaded")
+        expect.stringContaining("0 plugins loaded"),
       );
     });
 
@@ -104,7 +104,7 @@ describe("PluginManager", () => {
       await manager.init(mockPortal);
 
       expect(mockLogger.debug).toHaveBeenCalledWith(
-        expect.stringContaining("checking")
+        expect.stringContaining("checking"),
       );
     });
   });
@@ -126,8 +126,16 @@ describe("PluginManager", () => {
       const plugin1 = new MockPlugin("Plugin1");
       const plugin2 = new MockPlugin("Plugin2");
 
-      await plugin1.init({ portal: mockPortal, conf: baseConf, logger: mockLogger });
-      await plugin2.init({ portal: mockPortal, conf: baseConf, logger: mockLogger });
+      await plugin1.init({
+        portal: mockPortal,
+        conf: baseConf,
+        logger: mockLogger,
+      });
+      await plugin2.init({
+        portal: mockPortal,
+        conf: baseConf,
+        logger: mockLogger,
+      });
 
       // Access private members for testing
       (manager as any).plugins.set("Plugin1", plugin1);
@@ -148,12 +156,22 @@ describe("PluginManager", () => {
       const errorPlugin = new ErrorPlugin();
       const normalPlugin = new MockPlugin();
 
-      await errorPlugin.init({ portal: mockPortal, conf: baseConf, logger: mockLogger });
-      await normalPlugin.init({ portal: mockPortal, conf: baseConf, logger: mockLogger });
+      await errorPlugin.init({
+        portal: mockPortal,
+        conf: baseConf,
+        logger: mockLogger,
+      });
+      await normalPlugin.init({
+        portal: mockPortal,
+        conf: baseConf,
+        logger: mockLogger,
+      });
 
       (manager as any).plugins.set("ErrorPlugin", errorPlugin);
       (manager as any).plugins.set("MockPlugin", normalPlugin);
-      (manager as any).hookRegistry.get("beforeAuth")!.push(errorPlugin, normalPlugin);
+      (manager as any).hookRegistry
+        .get("beforeAuth")!
+        .push(errorPlugin, normalPlugin);
 
       const result = await manager.executeHook("beforeAuth", {} as any);
 
@@ -199,7 +217,11 @@ describe("PluginManager", () => {
       await manager.init(mockPortal);
 
       const plugin = new MockPlugin();
-      await plugin.init({ portal: mockPortal, conf: baseConf, logger: mockLogger });
+      await plugin.init({
+        portal: mockPortal,
+        conf: baseConf,
+        logger: mockLogger,
+      });
       (manager as any).plugins.set("MockPlugin", plugin);
 
       await manager.close();

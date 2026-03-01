@@ -7,8 +7,19 @@ import type { LLNG_Conf, LLNG_Logger } from "@lemonldap-ng/types";
 
 // Re-export portal types for convenience
 // These are dynamically imported to avoid circular dependencies
-export type { Plugin, PluginResult, PluginContext, PluginRegistration } from "@lemonldap-ng/portal";
-export { PE_OK, PE_ERROR, PE_BADCREDENTIALS, ok, error } from "@lemonldap-ng/portal";
+export type {
+  Plugin,
+  PluginResult,
+  PluginContext,
+  PluginRegistration,
+} from "@lemonldap-ng/portal";
+export {
+  PE_OK,
+  PE_ERROR,
+  PE_BADCREDENTIALS,
+  ok,
+  error,
+} from "@lemonldap-ng/portal";
 
 /**
  * Abstract base class for plugins
@@ -25,7 +36,11 @@ export abstract class BasePlugin {
    * Initialize the plugin
    * Override this method to add custom initialization logic
    */
-  async init(context: { portal: any; conf: LLNG_Conf; logger: LLNG_Logger }): Promise<boolean> {
+  async init(context: {
+    portal: any;
+    conf: LLNG_Conf;
+    logger: LLNG_Logger;
+  }): Promise<boolean> {
     this.portal = context.portal;
     this.conf = context.conf;
     this.logger = context.logger;
