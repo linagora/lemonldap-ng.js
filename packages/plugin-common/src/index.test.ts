@@ -86,7 +86,9 @@ describe("BasePlugin", () => {
   describe("Logging helpers", () => {
     it("should log debug messages", () => {
       (plugin as any).debug("test message");
-      expect(mockLogger.debug).toHaveBeenCalledWith("[TestPlugin] test message");
+      expect(mockLogger.debug).toHaveBeenCalledWith(
+        "[TestPlugin] test message",
+      );
     });
 
     it("should log info messages", () => {
@@ -101,7 +103,9 @@ describe("BasePlugin", () => {
 
     it("should log error messages", () => {
       (plugin as any).error("test message");
-      expect(mockLogger.error).toHaveBeenCalledWith("[TestPlugin] test message");
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        "[TestPlugin] test message",
+      );
     });
   });
 

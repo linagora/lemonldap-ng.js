@@ -19,7 +19,7 @@
 export function checkConf(
   conf: Record<string, any>,
   path: string,
-  type: "or" | "and" = "or"
+  type: "or" | "and" = "or",
 ): boolean {
   const parts = path.split("/");
 
@@ -93,7 +93,7 @@ export function shouldEnablePlugin(
   conf: Record<string, any>,
   configKeys: string | string[],
   compoundCondition?: { type: "or" | "and"; keys: string[] },
-  wildcardPath?: { type: "or" | "and"; path: string }
+  wildcardPath?: { type: "or" | "and"; path: string },
 ): boolean {
   // Wildcard path takes precedence
   if (wildcardPath) {

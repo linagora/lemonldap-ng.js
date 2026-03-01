@@ -1,5 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { checkConf, parseConfigCondition, shouldEnablePlugin } from "./config-checker";
+import {
+  checkConf,
+  parseConfigCondition,
+  shouldEnablePlugin,
+} from "./config-checker";
 
 describe("config-checker", () => {
   describe("checkConf", () => {
@@ -37,7 +41,11 @@ describe("config-checker", () => {
         },
       };
       expect(
-        checkConf(conf, "oidcRPMetaDataOptions/*/oidcRPMetaDataOptionsAllowNativeSso", "or")
+        checkConf(
+          conf,
+          "oidcRPMetaDataOptions/*/oidcRPMetaDataOptionsAllowNativeSso",
+          "or",
+        ),
       ).toBe(true);
     });
 
@@ -49,7 +57,11 @@ describe("config-checker", () => {
         },
       };
       expect(
-        checkConf(conf, "oidcRPMetaDataOptions/*/oidcRPMetaDataOptionsAllowNativeSso", "or")
+        checkConf(
+          conf,
+          "oidcRPMetaDataOptions/*/oidcRPMetaDataOptionsAllowNativeSso",
+          "or",
+        ),
       ).toBe(false);
     });
 
@@ -95,9 +107,9 @@ describe("config-checker", () => {
 
     it("should handle empty wildcard results", () => {
       const conf = { oidcRPMetaDataOptions: {} };
-      expect(
-        checkConf(conf, "oidcRPMetaDataOptions/*/someKey", "or")
-      ).toBe(false);
+      expect(checkConf(conf, "oidcRPMetaDataOptions/*/someKey", "or")).toBe(
+        false,
+      );
     });
   });
 
@@ -140,7 +152,7 @@ describe("config-checker", () => {
         shouldEnablePlugin(conf, "singleSession", {
           type: "or",
           keys: ["singleSession", "singleIP", "singleUserByIP"],
-        })
+        }),
       ).toBe(true);
     });
 
@@ -150,7 +162,7 @@ describe("config-checker", () => {
         shouldEnablePlugin(conf, "key1", {
           type: "and",
           keys: ["key1", "key2"],
-        })
+        }),
       ).toBe(true);
     });
 
@@ -164,7 +176,7 @@ describe("config-checker", () => {
         shouldEnablePlugin(conf, "oidcNativeSso", undefined, {
           type: "or",
           path: "oidcRPMetaDataOptions/*/oidcRPMetaDataOptionsAllowNativeSso",
-        })
+        }),
       ).toBe(true);
     });
   });

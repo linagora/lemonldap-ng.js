@@ -37,7 +37,11 @@ export {
 } from "./types";
 
 // Config checker
-export { checkConf, parseConfigCondition, shouldEnablePlugin } from "./config-checker";
+export {
+  checkConf,
+  parseConfigCondition,
+  shouldEnablePlugin,
+} from "./config-checker";
 
 // Registry
 export { pluginRegistry, getSortedRegistry, registerPlugin } from "./registry";
