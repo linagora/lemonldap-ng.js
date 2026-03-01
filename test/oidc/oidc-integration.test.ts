@@ -540,4 +540,150 @@ describe("OIDC Integration Tests", () => {
       }
     });
   });
+
+  /**
+   * Security Regression Tests for RFC 7662 (Introspection) and RFC 7009 (Revocation)
+   *
+   * These tests ensure that the introspection and revocation endpoints
+   * require proper client authentication as mandated by the OAuth 2.0 specs.
+   *
+   * See: https://datatracker.ietf.org/doc/html/rfc7662#section-2.1
+   *      https://datatracker.ietf.org/doc/html/rfc7009#section-2.1
+   */
+  describe("Security: Client Authentication Required (RFC 7662/7009)", () => {
+    it("should reject introspection without client credentials", async () => {
+      const response = await fetch(`${OP_ISSUER}/introspect`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+          token: "some-token",
+        }).toString(),
+      });
+
+      expect(response.status).toBe(401);
+      const error = (await response.json()) as { error: string };
+      expect(error.error).toBe("invalid_client");
+    });
+
+    it("should reject introspection with wrong client credentials", async () => {
+      const response = await fetch(`${OP_ISSUER}/introspect`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          Authorization: `Basic ${Buffer.from("test-client-id:wrong-secret").toString("base64")}`,
+        },
+        body: new URLSearchParams({
+          token: "some-token",
+        }).toString(),
+      });
+
+      expect(response.status).toBe(401);
+      const error = (await response.json()) as { error: string };
+      expect(error.error).toBe("invalid_client");
+    });
+
+    it("should reject revocation without client credentials", async () => {
+      const response = await fetch(`${OP_ISSUER}/revoke`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+          token: "some-token",
+        }).toString(),
+      });
+
+      expect(response.status).toBe(401);
+      const error = (await response.json()) as { error: string };
+      expect(error.error).toBe("invalid_client");
+    });
+
+    it("should reject revocation with wrong client credentials", async () => {
+      const response = await fetch(`${OP_ISSUER}/revoke`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          Authorization: `Basic ${Buffer.from("test-client-id:wrong-secret").toString("base64")}`,
+        },
+        body: new URLSearchParams({
+          token: "some-token",
+        }).toString(),
+      });
+
+      expect(response.status).toBe(401);
+      const error = (await response.json()) as { error: string };
+      expect(error.error).toBe("invalid_client");
+    });
+
+    it("should reject introspection with unknown client_id", async () => {
+      const response = await fetch(`${OP_ISSUER}/introspect`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          Authorization: `Basic ${Buffer.from("unknown-client:secret").toString("base64")}`,
+        },
+        body: new URLSearchParams({
+          token: "some-token",
+        }).toString(),
+      });
+
+      expect(response.status).toBe(401);
+      const error = (await response.json()) as { error: string };
+      expect(error.error).toBe("invalid_client");
+    });
+
+    it("should accept introspection with valid client credentials (Basic auth)", async () => {
+      const response = await fetch(`${OP_ISSUER}/introspect`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          Authorization: `Basic ${Buffer.from("test-client-id:test-client-secret").toString("base64")}`,
+        },
+        body: new URLSearchParams({
+          token: "invalid-token", // Token is invalid but auth should pass
+        }).toString(),
+      });
+
+      // Should return 200 with active=false for invalid token, not 401
+      expect(response.status).toBe(200);
+      const result = (await response.json()) as { active: boolean };
+      expect(result.active).toBe(false);
+    });
+
+    it("should accept introspection with valid client credentials (POST body)", async () => {
+      const response = await fetch(`${OP_ISSUER}/introspect`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+          token: "invalid-token",
+          client_id: "test-client-id",
+          client_secret: "test-client-secret",
+        }).toString(),
+      });
+
+      expect(response.status).toBe(200);
+      const result = (await response.json()) as { active: boolean };
+      expect(result.active).toBe(false);
+    });
+
+    it("should accept revocation with valid client credentials", async () => {
+      const response = await fetch(`${OP_ISSUER}/revoke`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          Authorization: `Basic ${Buffer.from("test-client-id:test-client-secret").toString("base64")}`,
+        },
+        body: new URLSearchParams({
+          token: "some-token-to-revoke",
+        }).toString(),
+      });
+
+      // Revocation should succeed (200) even for unknown tokens per RFC 7009
+      expect(response.status).toBe(200);
+    });
+  });
 });

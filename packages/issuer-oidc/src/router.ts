@@ -480,14 +480,47 @@ async function handleUserInfo(
 }
 
 /**
- * Handle introspection request
+ * Handle introspection request (RFC 7662)
+ * Requires client authentication per OAuth 2.0 spec
  */
 async function handleIntrospection(
   req: Request,
   res: Response,
   provider: OIDCProvider,
 ): Promise<void> {
-  // TODO: Validate client authentication
+  // Get client credentials from Authorization header or body
+  let clientId = req.body?.client_id;
+  let clientSecret = req.body?.client_secret;
+
+  const authHeader = req.headers.authorization;
+  if (authHeader?.startsWith("Basic ")) {
+    const base64Credentials = authHeader.slice(6);
+    const credentials = Buffer.from(base64Credentials, "base64").toString(
+      "utf8",
+    );
+    const [id, secret] = credentials.split(":");
+    clientId = clientId || decodeURIComponent(id);
+    clientSecret = clientSecret || decodeURIComponent(secret);
+  }
+
+  // Validate client authentication
+  const authResult = await provider.validateClientAuth(
+    {
+      client_id: clientId,
+      client_secret: clientSecret,
+      client_assertion: req.body?.client_assertion,
+      client_assertion_type: req.body?.client_assertion_type,
+    },
+    clientId,
+  );
+
+  if (!authResult.valid) {
+    res.status(401).json({
+      error: authResult.error || "invalid_client",
+      error_description: authResult.errorDescription,
+    });
+    return;
+  }
 
   const token = req.body?.token;
   const tokenTypeHint = req.body?.token_type_hint;
@@ -507,14 +540,47 @@ async function handleIntrospection(
 }
 
 /**
- * Handle revocation request
+ * Handle revocation request (RFC 7009)
+ * Requires client authentication per OAuth 2.0 spec
  */
 async function handleRevocation(
   req: Request,
   res: Response,
   provider: OIDCProvider,
 ): Promise<void> {
-  // TODO: Validate client authentication
+  // Get client credentials from Authorization header or body
+  let clientId = req.body?.client_id;
+  let clientSecret = req.body?.client_secret;
+
+  const authHeader = req.headers.authorization;
+  if (authHeader?.startsWith("Basic ")) {
+    const base64Credentials = authHeader.slice(6);
+    const credentials = Buffer.from(base64Credentials, "base64").toString(
+      "utf8",
+    );
+    const [id, secret] = credentials.split(":");
+    clientId = clientId || decodeURIComponent(id);
+    clientSecret = clientSecret || decodeURIComponent(secret);
+  }
+
+  // Validate client authentication
+  const authResult = await provider.validateClientAuth(
+    {
+      client_id: clientId,
+      client_secret: clientSecret,
+      client_assertion: req.body?.client_assertion,
+      client_assertion_type: req.body?.client_assertion_type,
+    },
+    clientId,
+  );
+
+  if (!authResult.valid) {
+    res.status(401).json({
+      error: authResult.error || "invalid_client",
+      error_description: authResult.errorDescription,
+    });
+    return;
+  }
 
   const token = req.body?.token;
 

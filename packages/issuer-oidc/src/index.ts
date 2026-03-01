@@ -45,6 +45,7 @@ export {
   IntrospectionResponse,
   AuthorizationRequest,
   TokenRequest,
+  ClientAuthParams,
   UserInfoResponse,
   Logger,
 } from "./types";

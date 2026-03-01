@@ -483,4 +483,72 @@ describe("OIDCProvider", () => {
       }
     });
   });
+
+  describe("client authentication (RFC 7662/7009 security)", () => {
+    it("should reject introspection/revocation without client credentials", async () => {
+      await provider.init();
+
+      // Missing client_id
+      const result1 = await provider.validateClientAuth({}, "");
+      expect(result1.valid).toBe(false);
+      expect(result1.error).toBe("invalid_client");
+
+      // Unknown client
+      const result2 = await provider.validateClientAuth(
+        { client_id: "unknown-client" },
+        "unknown-client",
+      );
+      expect(result2.valid).toBe(false);
+      expect(result2.error).toBe("invalid_client");
+    });
+
+    it("should reject introspection/revocation with wrong client_secret", async () => {
+      await provider.init();
+
+      const result = await provider.validateClientAuth(
+        {
+          client_id: "test-client-id",
+          client_secret: "wrong-secret",
+        },
+        "test-client-id",
+      );
+      expect(result.valid).toBe(false);
+      expect(result.error).toBe("invalid_client");
+    });
+
+    it("should accept introspection/revocation with correct client_secret", async () => {
+      await provider.init();
+
+      const result = await provider.validateClientAuth(
+        {
+          client_id: "test-client-id",
+          client_secret: "test-client-secret",
+        },
+        "test-client-id",
+      );
+      expect(result.valid).toBe(true);
+    });
+
+    it("should allow public clients without secret for introspection/revocation", async () => {
+      await provider.init();
+
+      const result = await provider.validateClientAuth(
+        { client_id: "public-client-id" },
+        "public-client-id",
+      );
+      expect(result.valid).toBe(true);
+    });
+
+    it("should reject missing client_secret for confidential clients", async () => {
+      await provider.init();
+
+      const result = await provider.validateClientAuth(
+        { client_id: "test-client-id" },
+        "test-client-id",
+      );
+      expect(result.valid).toBe(false);
+      expect(result.error).toBe("invalid_client");
+      expect(result.errorDescription).toContain("client_secret");
+    });
+  });
 });

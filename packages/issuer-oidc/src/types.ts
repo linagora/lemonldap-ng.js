@@ -515,23 +515,30 @@ export interface AuthorizationRequest {
 }
 
 /**
+ * Client Authentication Parameters
+ * Used for authenticating clients on token, introspection, and revocation endpoints
+ */
+export interface ClientAuthParams {
+  client_id?: string;
+  client_secret?: string;
+  /** Client assertion JWT for client_secret_jwt or private_key_jwt auth */
+  client_assertion?: string;
+  /** Client assertion type (should be urn:ietf:params:oauth:client-assertion-type:jwt-bearer) */
+  client_assertion_type?: string;
+}
+
+/**
  * Token Request
  */
-export interface TokenRequest {
+export interface TokenRequest extends ClientAuthParams {
   grant_type: string;
   code?: string;
   redirect_uri?: string;
-  client_id?: string;
-  client_secret?: string;
   refresh_token?: string;
   scope?: string;
   code_verifier?: string;
   username?: string;
   password?: string;
-  /** Client assertion JWT for client_secret_jwt or private_key_jwt auth */
-  client_assertion?: string;
-  /** Client assertion type (should be urn:ietf:params:oauth:client-assertion-type:jwt-bearer) */
-  client_assertion_type?: string;
 }
 
 /**

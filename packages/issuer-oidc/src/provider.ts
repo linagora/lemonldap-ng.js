@@ -21,6 +21,7 @@ import {
   IntrospectionResponse,
   AuthorizationRequest,
   TokenRequest,
+  ClientAuthParams,
   AuthCodeData,
   AccessTokenData,
   RefreshTokenData,
@@ -1159,11 +1160,11 @@ export class OIDCProvider {
   }
 
   /**
-   * Validate client authentication for token endpoint
+   * Validate client authentication for token, introspection, and revocation endpoints
    * Supports: client_secret_basic, client_secret_post, client_secret_jwt, private_key_jwt, none
    */
   async validateClientAuth(
-    params: TokenRequest,
+    params: ClientAuthParams,
     clientId: string,
   ): Promise<{ valid: boolean; error?: string; errorDescription?: string }> {
     const rp = this.getRP(clientId);
