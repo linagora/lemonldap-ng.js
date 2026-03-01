@@ -64,6 +64,7 @@
     "@vitest/coverage-v8": "^4.0.18",
     "eslint": "^9.24.0",
     "express": "^5.1.0",
+    "lasso.js": "^0.2.2",
     "normalize-url": "^8.0.1",
     "prettier": "^3.5.3",
     "redis-mock": "^0.56.3",
