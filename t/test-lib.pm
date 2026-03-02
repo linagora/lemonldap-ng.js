@@ -565,12 +565,97 @@ sub getJsVars {
     return \%vars;
 }
 
-# Placeholders for multi-handler tests (not supported in JS version yet)
-sub register { die "register() not supported in JS test harness" }
+=head2 Multi-instance support
+
+Support for running multiple LLNG instances (e.g., OP and RP) simultaneously.
+
+=cut
+
+# Registry of named instances
+our %_instances;
+our $_nextPort = 19800;
+our $_currentInstance;
+
+=head4 register( $name, $coderef )
+
+Register a named LLNG instance. The coderef should return a configured
+LLNG::Manager::Test instance.
+
+  my $op = register('op', sub { LLNG::Manager::Test->new({ ini => { ... } }) });
+
+=cut
+
+sub register {
+    my ($name, $coderef) = @_;
+
+    # Assign a unique port for this instance
+    my $port = $_nextPort++;
+
+    # Set port hint in environment for the coderef
+    local $ENV{LLNG_INSTANCE_PORT} = $port;
+    local $ENV{LLNG_INSTANCE_NAME} = $name;
+
+    # Create the instance
+    my $instance = $coderef->();
+
+    # Store in registry
+    $_instances{$name} = $instance;
+    $_currentInstance = $instance;
+
+    note("Registered instance '$name' on port " . $instance->serverPort);
+    return $instance;
+}
+
+=head4 switch( $name )
+
+Switch to a named instance and return it.
+
+  my $op = switch('op');
+
+=cut
+
+sub switch {
+    my ($name) = @_;
+    my $instance = $_instances{$name};
+    die "Unknown instance: $name" unless $instance;
+    $_currentInstance = $instance;
+    return $instance;
+}
+
+=head4 getInstances()
+
+Return hash of all registered instances.
+
+=cut
+
+sub getInstances {
+    return \%_instances;
+}
+
+=head4 cleanupInstances()
+
+Stop and cleanup all registered instances.
+
+=cut
+
+sub cleanupInstances {
+    for my $name (keys %_instances) {
+        my $instance = $_instances{$name};
+        $instance->DEMOLISH() if $instance;
+    }
+    %_instances = ();
+    $_currentInstance = undef;
+}
+
+# Register cleanup at END
+END {
+    cleanupInstances();
+}
+
+# Placeholders for handler tests (not yet supported)
 sub withHandler { die "withHandler() not supported in JS test harness" }
 sub pushHandler { die "pushHandler() not supported in JS test harness" }
 sub popHandler { die "popHandler() not supported in JS test harness" }
-sub switch { die "switch() not supported in JS test harness" }
 
 
 =head2 LLNG::Manager::Test Class
@@ -593,8 +678,18 @@ use File::Basename qw(dirname);
 
 # Server process management
 has jsServerPid => ( is => 'rw' );
-has serverPort  => ( is => 'rw', default => sub { 19876 + int(rand(1000)) } );
+has serverPort  => (
+    is => 'rw',
+    default => sub {
+        # Use port hint from register() if available, otherwise random
+        $ENV{LLNG_INSTANCE_PORT} || (19876 + int(rand(1000)))
+    }
+);
 has serverUrl   => ( is => 'rw' );
+has instanceName => (
+    is => 'rw',
+    default => sub { $ENV{LLNG_INSTANCE_NAME} || 'default' }
+);
 has ua          => ( is => 'rw', lazy => 1, builder => '_build_ua' );
 
 # Request defaults

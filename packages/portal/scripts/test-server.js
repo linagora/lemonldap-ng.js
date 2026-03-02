@@ -20,6 +20,17 @@ const cookieParser = require("cookie-parser");
 const path = require("path");
 const fs = require("fs");
 
+// OIDC Provider (optional, for OIDC issuer tests)
+let OIDCProvider = null;
+let createOIDCRouter = null;
+try {
+  const issuerOidc = require("@lemonldap-ng/issuer-oidc");
+  OIDCProvider = issuerOidc.OIDCProvider;
+  createOIDCRouter = issuerOidc.createOIDCRouter;
+} catch (e) {
+  // issuer-oidc not installed, OIDC endpoints won't be available
+}
+
 // Parse command line arguments
 function parseArgs() {
   const args = process.argv.slice(2);
@@ -122,6 +133,64 @@ async function main() {
     app.use(middleware(portal));
 
     log("info", "Using real Portal middleware", options);
+
+    // Mount OIDC issuer routes if enabled in config
+    if (OIDCProvider && createOIDCRouter) {
+      const configFile = path.join(options.tmpDir, "lmConf-1.json");
+      try {
+        const config = JSON.parse(fs.readFileSync(configFile, "utf-8"));
+        if (config.issuerDBOpenIDConnectActivation) {
+          log("info", "Mounting OIDC issuer routes...", options);
+
+          // Pass the LLNG config directly to OIDCProvider
+          const oidcConfig = {
+            ...config,  // Include all LLNG config (portal, oidcServicePrivateKeySig, etc.)
+            sessionStorage: {
+              module: "file",
+              options: {
+                directory: options.tmpDir,
+                lockDirectory: path.join(options.tmpDir, "lock"),
+              },
+            },
+            tokenStorage: {
+              module: "file",
+              options: {
+                directory: options.tmpDir,
+              },
+            },
+          };
+          const oidcProvider = new OIDCProvider(oidcConfig);
+
+          const oidcRouter = createOIDCRouter({
+            provider: oidcProvider,
+            checkAuth: async (req) => {
+              // Check if request has valid session from Portal
+              const cookieName = config.cookieName || "lemonldap";
+              const sessionId = req.cookies?.[cookieName];
+              if (!sessionId) return null;
+
+              const sessionFile = path.join(options.tmpDir, sessionId);
+              if (fs.existsSync(sessionFile)) {
+                try {
+                  const session = JSON.parse(fs.readFileSync(sessionFile, "utf-8"));
+                  if (session._user && session._session_id) {
+                    return { userId: session._user, sessionId: session._session_id };
+                  }
+                } catch (e) {
+                  // Invalid session
+                }
+              }
+              return null;
+            },
+          });
+
+          app.use(oidcRouter);
+          log("info", "OIDC issuer routes mounted", options);
+        }
+      } catch (e) {
+        log("warn", `Failed to mount OIDC routes: ${e.message}`, options);
+      }
+    }
   } else {
     // Fallback to simplified implementation
     setupFallbackServer(app, options);
