@@ -1445,16 +1445,61 @@ export class OIDCProvider {
       };
     }
 
+    // Validate the redirect URI is a well-formed URL
+    let requestUrl: URL;
+    try {
+      requestUrl = new URL(post_logout_redirect_uri);
+    } catch {
+      return {
+        valid: false,
+        error: "Invalid post_logout_redirect_uri format",
+        errorCode: 108,
+      };
+    }
+
+    // Security: Only allow http/https schemes
+    if (requestUrl.protocol !== "https:" && requestUrl.protocol !== "http:") {
+      return {
+        valid: false,
+        error: "post_logout_redirect_uri must use http or https scheme",
+        errorCode: 108,
+      };
+    }
+
+    // Security: Reject URIs with fragments (per OAuth 2.0 spec)
+    if (requestUrl.hash) {
+      return {
+        valid: false,
+        error: "post_logout_redirect_uri must not contain a fragment",
+        errorCode: 108,
+      };
+    }
+
     // Check if post_logout_redirect_uri is allowed for this RP
     const allowedUris = rp.oidcRPMetaDataOptionsPostLogoutRedirectUris || [];
     const uriAllowed = allowedUris.some((allowed) => {
-      // Check exact match or pattern match
+      // Check exact match (normalized comparison)
       if (allowed === post_logout_redirect_uri) {
         return true;
       }
-      // Check if it's a prefix match (e.g., http://example.com/* pattern)
+
+      // Check if it's a prefix match (e.g., https://example.com/app/*)
+      // Only allow wildcard at the end of a path, never for host matching
       if (allowed.endsWith("*")) {
-        return post_logout_redirect_uri.startsWith(allowed.slice(0, -1));
+        const prefix = allowed.slice(0, -1);
+        try {
+          const allowedUrl = new URL(prefix);
+          // Origins must match exactly (scheme + host + port)
+          // This prevents subdomain attacks like https://example.com.evil.com/
+          if (allowedUrl.origin !== requestUrl.origin) {
+            return false;
+          }
+          // The path must start with the allowed path prefix
+          return requestUrl.pathname.startsWith(allowedUrl.pathname);
+        } catch {
+          // Invalid allowed pattern, skip
+          return false;
+        }
       }
       return false;
     });
