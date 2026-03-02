@@ -285,6 +285,7 @@ sub authorize {
     local $Test::Builder::Level = $Test::Builder::Level + 1;
     my ( $op, $id, $params ) = @_;
     my $query = buildForm($params);
+    # Note: endpoints are under /oauth2/ to match Perl LemonLDAP::NG convention
     my $res = $op->_get(
         "/oauth2/authorize",
         query  => $query,

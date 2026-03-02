@@ -180,6 +180,13 @@ export class OIDCProvider {
   }
 
   /**
+   * Get the provider configuration
+   */
+  getConfig(): OIDCProviderConfig {
+    return this.config;
+  }
+
+  /**
    * Get rate limit configuration from global portal config
    */
   getRateLimitConfig(): {

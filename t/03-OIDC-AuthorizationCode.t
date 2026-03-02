@@ -54,8 +54,8 @@ ok( $disco->{issuer}, 'Has issuer' );
 ok( $disco->{authorization_endpoint}, 'Has authorization_endpoint' );
 ok( $disco->{token_endpoint}, 'Has token_endpoint' );
 
-# Test JWKS endpoint
-ok( $res = $op->_get('/jwks'), 'JWKS endpoint' );
+# Test JWKS endpoint (under /oauth2)
+ok( $res = $op->_get('/oauth2/jwks'), 'JWKS endpoint' );
 expectOK($res);
 my $jwks = expectJSON($res);
 ok( exists $jwks->{keys}, 'JWKS has keys array' );
@@ -64,10 +64,10 @@ ok( exists $jwks->{keys}, 'JWKS has keys array' );
 my $cookie = $op->login('dwho');
 ok( $cookie, 'Logged in as dwho' );
 
-# Authorization request
+# Authorization request (under /oauth2)
 ok(
     $res = $op->_get(
-        '/authorize',
+        '/oauth2/authorize',
         query => buildForm({
             response_type => 'code',
             client_id     => 'rpid',
@@ -90,10 +90,10 @@ ok( $location && $location =~ /code=([^&]+)/, 'Redirect includes code' );
 my ($code) = ($location =~ /code=([^&]+)/);
 ok( $code, 'Got authorization code' );
 
-# Token request
+# Token request (under /oauth2)
 ok(
     $res = $op->_post(
-        '/token',
+        '/oauth2/token',
         buildForm({
             grant_type    => 'authorization_code',
             code          => $code,
@@ -117,10 +117,10 @@ ok( $payload, 'id_token is valid JWT' );
 is( $payload->{sub}, 'dwho', 'id_token sub is dwho' );
 is( $payload->{aud}, 'rpid', 'id_token aud is rpid' );
 
-# UserInfo request
+# UserInfo request (under /oauth2)
 ok(
     $res = $op->_get(
-        '/userinfo',
+        '/oauth2/userinfo',
         custom => {
             HTTP_AUTHORIZATION => "Bearer " . $tokens->{access_token},
         },

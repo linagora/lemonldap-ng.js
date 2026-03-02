@@ -145,6 +145,7 @@ async function main() {
           // Pass the LLNG config directly to OIDCProvider
           const oidcConfig = {
             ...config,  // Include all LLNG config (portal, oidcServicePrivateKeySig, etc.)
+            basePath: "/oauth2",  // Match Perl LemonLDAP::NG convention
             sessionStorage: {
               module: "file",
               options: {
@@ -163,6 +164,7 @@ async function main() {
 
           const oidcRouter = createOIDCRouter({
             provider: oidcProvider,
+            basePath: "/oauth2",  // Match Perl LemonLDAP::NG convention
             checkAuth: async (req) => {
               // Check if request has valid session from Portal
               const cookieName = config.cookieName || "lemonldap";

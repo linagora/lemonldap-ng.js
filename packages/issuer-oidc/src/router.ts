@@ -26,6 +26,22 @@ export interface OIDCRouterOptions {
   provider: OIDCProvider;
 
   /**
+   * Base path for OIDC endpoints (e.g., "/oauth2").
+   * All endpoints except discovery will be prefixed with this path.
+   * Discovery endpoint remains at /.well-known/openid-configuration
+   * as per OIDC spec.
+   *
+   * Example: basePath="/oauth2" will mount endpoints at:
+   * - /oauth2/authorize
+   * - /oauth2/token
+   * - /oauth2/userinfo
+   * - etc.
+   *
+   * If not specified, uses the basePath from provider config.
+   */
+  basePath?: string;
+
+  /**
    * Optional rate limiting overrides.
    * Rate limiting is configured globally via provider config
    * (portalRateLimit, portalRateLimitMax, portalRateLimitWindow).
@@ -117,6 +133,16 @@ export function createOIDCRouter(options: OIDCRouterOptions): Router {
   const router = Router();
   const { provider, rateLimit: rateLimitOptions } = options;
 
+  // Determine basePath from options or provider config
+  const basePath = (
+    options.basePath ??
+    provider.getConfig().basePath ??
+    ""
+  ).replace(/\/$/, "");
+
+  // Helper to build path with basePath
+  const path = (endpoint: string) => `${basePath}${endpoint}`;
+
   // Initialize provider
   provider.init().catch((err) => {
     console.error("Failed to initialize OIDC provider:", err);
@@ -125,14 +151,14 @@ export function createOIDCRouter(options: OIDCRouterOptions): Router {
   // Apply rate limiting to sensitive endpoints (always applied, pass-through when disabled)
   const rateLimitConfig = provider.getRateLimitConfig();
   const limiter = createRateLimiter(rateLimitConfig, rateLimitOptions);
-  router.use("/token", limiter);
-  router.use("/authorize", limiter);
-  router.use("/userinfo", limiter);
-  router.use("/introspect", limiter);
-  router.use("/register", limiter);
-  router.use("/logout", limiter);
+  router.use(path("/token"), limiter);
+  router.use(path("/authorize"), limiter);
+  router.use(path("/userinfo"), limiter);
+  router.use(path("/introspect"), limiter);
+  router.use(path("/register"), limiter);
+  router.use(path("/logout"), limiter);
 
-  // Discovery endpoint
+  // Discovery endpoint (always at root, not under basePath)
   router.get(
     "/.well-known/openid-configuration",
     (req: Request, res: Response) => {
@@ -141,7 +167,7 @@ export function createOIDCRouter(options: OIDCRouterOptions): Router {
   );
 
   // JWKS endpoint
-  router.get("/jwks", async (req: Request, res: Response) => {
+  router.get(path("/jwks"), async (req: Request, res: Response) => {
     try {
       const jwks = await provider.getJWKS();
       res.json(jwks);
@@ -154,49 +180,49 @@ export function createOIDCRouter(options: OIDCRouterOptions): Router {
   });
 
   // Authorization endpoint
-  router.get("/authorize", async (req: Request, res: Response) => {
+  router.get(path("/authorize"), async (req: Request, res: Response) => {
     await handleAuthorization(req, res, options);
   });
 
-  router.post("/authorize", async (req: Request, res: Response) => {
+  router.post(path("/authorize"), async (req: Request, res: Response) => {
     await handleAuthorization(req, res, options);
   });
 
   // Token endpoint
-  router.post("/token", async (req: Request, res: Response) => {
+  router.post(path("/token"), async (req: Request, res: Response) => {
     await handleToken(req, res, provider);
   });
 
   // UserInfo endpoint
-  router.get("/userinfo", async (req: Request, res: Response) => {
+  router.get(path("/userinfo"), async (req: Request, res: Response) => {
     await handleUserInfo(req, res, provider);
   });
 
-  router.post("/userinfo", async (req: Request, res: Response) => {
+  router.post(path("/userinfo"), async (req: Request, res: Response) => {
     await handleUserInfo(req, res, provider);
   });
 
   // Introspection endpoint
-  router.post("/introspect", async (req: Request, res: Response) => {
+  router.post(path("/introspect"), async (req: Request, res: Response) => {
     await handleIntrospection(req, res, provider);
   });
 
   // Revocation endpoint
-  router.post("/revoke", async (req: Request, res: Response) => {
+  router.post(path("/revoke"), async (req: Request, res: Response) => {
     await handleRevocation(req, res, provider);
   });
 
   // End session endpoint
-  router.get("/logout", async (req: Request, res: Response) => {
+  router.get(path("/logout"), async (req: Request, res: Response) => {
     await handleEndSession(req, res, options);
   });
 
-  router.post("/logout", async (req: Request, res: Response) => {
+  router.post(path("/logout"), async (req: Request, res: Response) => {
     await handleEndSession(req, res, options);
   });
 
   // Dynamic Client Registration endpoint
-  router.post("/register", async (req: Request, res: Response) => {
+  router.post(path("/register"), async (req: Request, res: Response) => {
     await handleRegistration(req, res, provider);
   });
 
