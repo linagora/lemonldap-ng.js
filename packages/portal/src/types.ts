@@ -1,0 +1,237 @@
+import type { Request } from "express";
+import type { LLNG_Conf, LLNG_Session, LLNG_Logger } from "@lemonldap-ng/types";
+import type {
+  SecondFactorModule,
+  SecondFactorRegisterModule,
+  TwoFactorChallenge,
+  VerifyResult as TwoFactorVerifyResult,
+} from "@lemonldap-ng/2fa-common";
+
+/**
+ * Credentials extracted from login form
+ */
+export interface Credentials {
+  user: string;
+  password: string;
+}
+
+/**
+ * Authentication result info (for PPolicy warnings etc.)
+ */
+export interface AuthResultInfo {
+  type: string; // "ppolicyGrace" | "ppolicyExpire" | etc.
+  value: number;
+  message: string;
+}
+
+/**
+ * Authentication result
+ */
+export interface AuthResult {
+  success: boolean;
+  user?: string;
+  error?: string;
+  errorCode?: string | number;
+  /** Additional info (e.g., PPolicy warnings) */
+  info?: AuthResultInfo;
+}
+
+/**
+ * User data from UserDB
+ */
+export interface UserData {
+  uid: string;
+  attributes: Record<string, string | string[]>;
+  groups?: string[];
+}
+
+/**
+ * Authentication module interface
+ */
+export interface AuthModule {
+  /** Module name */
+  readonly name: string;
+
+  /** Initialize module with configuration */
+  init(_conf: LLNG_Conf, _logger: LLNG_Logger): Promise<void>;
+
+  /** Extract credentials from request */
+  extractCredentials(_req: Request): Credentials | null;
+
+  /** Authenticate user with credentials */
+  authenticate(_credentials: Credentials): Promise<AuthResult>;
+
+  /** Optional: cleanup */
+  close?(): Promise<void>;
+}
+
+/**
+ * UserDB module interface
+ */
+export interface UserDBModule {
+  /** Module name */
+  readonly name: string;
+
+  /** Initialize module with configuration */
+  init(_conf: LLNG_Conf, _logger: LLNG_Logger): Promise<void>;
+
+  /** Get user data by username */
+  getUser(_username: string): Promise<UserData | null>;
+
+  /** Set session info from user data */
+  setSessionInfo(_session: LLNG_Session, _user: UserData): void;
+
+  /** Optional: cleanup */
+  close?(): Promise<void>;
+}
+
+/**
+ * Password change result
+ */
+export interface PasswordChangeResult {
+  success: boolean;
+  error?: string;
+  errorCode?: string;
+  message?: string;
+}
+
+/**
+ * Password change options
+ */
+export interface PasswordChangeOptions {
+  /** Old password for verification */
+  oldPassword?: string;
+  /** Skip old password verification (for admin reset) */
+  passwordReset?: boolean;
+  /** Set force reset flag after change */
+  forceReset?: boolean;
+}
+
+/**
+ * Password module interface
+ * Handles password verification and modification
+ */
+export interface PasswordModule {
+  /** Module name */
+  readonly name: string;
+
+  /** Initialize module with configuration */
+  init(_conf: LLNG_Conf, _logger: LLNG_Logger): Promise<void>;
+
+  /**
+   * Confirm/verify old password is correct
+   * @param userDn - User's DN (from session._dn)
+   * @param password - Password to verify
+   */
+  confirm(_userDn: string, _password: string): Promise<boolean>;
+
+  /**
+   * Change user password
+   * @param userDn - User's DN (from session._dn)
+   * @param newPassword - New password
+   * @param options - Optional parameters
+   */
+  modifyPassword(
+    _userDn: string,
+    _newPassword: string,
+    _options?: PasswordChangeOptions,
+  ): Promise<PasswordChangeResult>;
+
+  /** Optional: cleanup */
+  close?(): Promise<void>;
+}
+
+/**
+ * 2FA pending session state
+ * Stored temporarily during 2FA verification
+ */
+export interface TwoFactorPendingState {
+  /** User identifier */
+  user: string;
+  /** User data for session creation */
+  userData: UserData;
+  /** Credentials used */
+  credentials: Credentials;
+  /** Pending 2FA token */
+  token: string;
+  /** Available 2FA modules */
+  availableModules: string[];
+  /** Timestamp */
+  timestamp: number;
+  /** URL to redirect after login */
+  urldc?: string;
+}
+
+/**
+ * Extended Express Request with portal data
+ */
+export interface PortalRequest extends Request {
+  /** Current session (if authenticated) */
+  llngSession?: LLNG_Session;
+  /** Session ID from cookie */
+  llngSessionId?: string;
+  /** Extracted credentials */
+  llngCredentials?: Credentials;
+  /** Authentication result */
+  llngAuthResult?: AuthResult;
+  /** User data from UserDB */
+  llngUserData?: UserData;
+  /** Portal URL */
+  llngPortal?: string;
+  /** URL to redirect after login */
+  llngUrldc?: string;
+  /** Password change result */
+  llngPasswordResult?: PasswordChangeResult;
+  /** 2FA required for this user */
+  llng2faRequired?: boolean;
+  /** 2FA challenge data */
+  llng2faChallenge?: TwoFactorChallenge;
+  /** 2FA verification result */
+  llng2faResult?: TwoFactorVerifyResult;
+  /** 2FA pending state (waiting for 2FA verification) */
+  llng2faPending?: TwoFactorPendingState;
+}
+
+/**
+ * Portal initialization options
+ */
+export interface PortalOptions {
+  /** Configuration storage options */
+  configStorage?: {
+    confFile?: string;
+    type?: string;
+    [key: string]: any;
+  };
+  /** Path to template views */
+  viewsPath?: string;
+  /** Static files path */
+  staticPath?: string;
+}
+
+/**
+ * Template context for rendering
+ */
+export interface TemplateContext {
+  /** Portal URL */
+  PORTAL?: string;
+  /** Error message */
+  AUTH_ERROR?: string;
+  /** Error code */
+  AUTH_ERROR_CODE?: string | number;
+  /** User login (for pre-fill) */
+  LOGIN?: string;
+  /** URL to redirect after auth */
+  URLDC?: string;
+  /** Session data */
+  session?: LLNG_Session;
+  /** Custom data */
+  [key: string]: any;
+}
+
+// Re-export 2FA types for convenience
+export type {
+  SecondFactorModule,
+  SecondFactorRegisterModule,
+  TwoFactorChallenge,
+  TwoFactorVerifyResult,
+};
