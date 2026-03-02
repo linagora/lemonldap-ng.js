@@ -85,6 +85,22 @@ export class SAMLIssuer {
   }
 
   /**
+   * Get rate limit configuration from portal config
+   */
+  getRateLimitConfig(): {
+    enabled: boolean;
+    max: number;
+    windowMs: number;
+  } {
+    return {
+      enabled: this.config.portalRateLimit || false,
+      max: this.config.portalRateLimitMax || 100,
+      // Config uses seconds, express-rate-limit uses milliseconds
+      windowMs: (this.config.portalRateLimitWindow || 60) * 1000,
+    };
+  }
+
+  /**
    * Get SP options by entity ID
    */
   getSPByEntityId(entityId: string): {

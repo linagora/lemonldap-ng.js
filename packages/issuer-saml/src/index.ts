@@ -13,7 +13,7 @@ export { SAMLIssuer } from "./issuer";
 export {
   createSAMLIssuerRouter,
   type SAMLRequest,
-  type SAMLRateLimitConfig,
+  type RateLimitOptions,
 } from "./router";
 
 // Export types

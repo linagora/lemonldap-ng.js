@@ -24,15 +24,9 @@ export interface SAMLRequest extends Request {
 }
 
 /**
- * Rate limiting configuration for SAML router
+ * Rate limiting options for SAML router
  */
-export interface SAMLRateLimitConfig {
-  /** Enable rate limiting (default: false) */
-  enabled?: boolean;
-  /** Max requests per window (default: 100) */
-  max?: number;
-  /** Window duration in milliseconds (default: 60000) */
-  windowMs?: number;
+export interface RateLimitOptions {
   /** Skip rate limiting for certain requests */
   skip?: (req: Request) => boolean;
 }
@@ -41,9 +35,12 @@ export interface SAMLRateLimitConfig {
  * Create rate limiter middleware (optional dependency)
  * Always returns a middleware - pass-through when disabled or not available
  */
-function createRateLimiter(config?: SAMLRateLimitConfig): RequestHandler {
+function createRateLimiter(
+  providerConfig: { enabled: boolean; max: number; windowMs: number },
+  routerOptions?: RateLimitOptions,
+): RequestHandler {
   // Pass-through middleware when rate limiting is disabled
-  if (!config?.enabled) {
+  if (!providerConfig.enabled) {
     return (_req, _res, next) => next();
   }
 
@@ -51,12 +48,12 @@ function createRateLimiter(config?: SAMLRateLimitConfig): RequestHandler {
     const rateLimit =
       require("express-rate-limit").default || require("express-rate-limit");
     return rateLimit({
-      windowMs: config.windowMs || 60000,
-      max: config.max || 100,
+      windowMs: providerConfig.windowMs,
+      max: providerConfig.max,
       message: "Too many requests, please try again later",
       standardHeaders: true,
       legacyHeaders: false,
-      skip: config.skip,
+      skip: routerOptions?.skip,
     });
   } catch {
     console.warn(
@@ -82,8 +79,8 @@ export function createSAMLIssuerRouter(
     getSessionData?: (
       sessionId: string,
     ) => Promise<Record<string, unknown> | null>;
-    /** Rate limiting configuration (optional, requires 'express-rate-limit') */
-    rateLimit?: SAMLRateLimitConfig;
+    /** Rate limiting options (optional, requires 'express-rate-limit') */
+    rateLimit?: RateLimitOptions;
   },
 ): Router {
   // Dynamic import of express Router
@@ -94,7 +91,8 @@ export function createSAMLIssuerRouter(
   router.use(express.urlencoded({ extended: true }));
 
   // Apply rate limiting to sensitive endpoints (always applied, pass-through when disabled)
-  const limiter = createRateLimiter(config.rateLimit);
+  const rateLimitConfig = issuer.getRateLimitConfig();
+  const limiter = createRateLimiter(rateLimitConfig, config.rateLimit);
   router.use("/singleSignOn", limiter);
   router.use("/singleLogout", limiter);
   router.use("/singleLogoutSOAP", limiter);

@@ -91,6 +91,18 @@ export interface SAMLIssuerConfig extends SAMLServiceConfig {
    * Callback to get federation identity
    */
   getIdentity?: (userId: string, spEntityId: string) => Promise<string | null>;
+
+  /**
+   * Enable rate limiting on SAML endpoints
+   * (requires 'express-rate-limit' package)
+   */
+  portalRateLimit?: boolean;
+
+  /** Max requests per window (default: 100) */
+  portalRateLimitMax?: number;
+
+  /** Window duration in seconds (default: 60) */
+  portalRateLimitWindow?: number;
 }
 
 /**
