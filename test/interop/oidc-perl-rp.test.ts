@@ -281,8 +281,8 @@ beforeAll(async () => {
     handleConsent: async () => true,
   });
 
-  // Mount router at /oauth2 prefix
-  opApp.use("/oauth2", router);
+  // Mount router at root - basePath is handled internally by the router
+  opApp.use(router);
 
   // Also mount discovery at root (as Perl expects it)
   opApp.get("/.well-known/openid-configuration", (req, res) => {
