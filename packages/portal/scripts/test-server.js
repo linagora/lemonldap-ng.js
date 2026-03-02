@@ -142,21 +142,28 @@ async function main() {
         if (config.issuerDBOpenIDConnectActivation) {
           log("info", "Mounting OIDC issuer routes...", options);
 
+          // Get session directory from config (may be instance-specific)
+          const sessionDir =
+            config.globalStorageOptions?.Directory || options.tmpDir;
+          const lockDir =
+            config.globalStorageOptions?.LockDirectory ||
+            path.join(sessionDir, "lock");
+
           // Pass the LLNG config directly to OIDCProvider
           const oidcConfig = {
-            ...config,  // Include all LLNG config (portal, oidcServicePrivateKeySig, etc.)
-            basePath: "/oauth2",  // Match Perl LemonLDAP::NG convention
+            ...config, // Include all LLNG config (portal, oidcServicePrivateKeySig, etc.)
+            basePath: "/oauth2", // Match Perl LemonLDAP::NG convention
             sessionStorage: {
               module: "file",
               options: {
-                directory: options.tmpDir,
-                lockDirectory: path.join(options.tmpDir, "lock"),
+                directory: sessionDir,
+                lockDirectory: lockDir,
               },
             },
             tokenStorage: {
               module: "file",
               options: {
-                directory: options.tmpDir,
+                directory: sessionDir,
               },
             },
           };
@@ -164,19 +171,24 @@ async function main() {
 
           const oidcRouter = createOIDCRouter({
             provider: oidcProvider,
-            basePath: "/oauth2",  // Match Perl LemonLDAP::NG convention
+            basePath: "/oauth2", // Match Perl LemonLDAP::NG convention
             checkAuth: async (req) => {
               // Check if request has valid session from Portal
               const cookieName = config.cookieName || "lemonldap";
               const sessionId = req.cookies?.[cookieName];
               if (!sessionId) return null;
 
-              const sessionFile = path.join(options.tmpDir, sessionId);
+              const sessionFile = path.join(sessionDir, sessionId);
               if (fs.existsSync(sessionFile)) {
                 try {
-                  const session = JSON.parse(fs.readFileSync(sessionFile, "utf-8"));
+                  const session = JSON.parse(
+                    fs.readFileSync(sessionFile, "utf-8"),
+                  );
                   if (session._user && session._session_id) {
-                    return { userId: session._user, sessionId: session._session_id };
+                    return {
+                      userId: session._user,
+                      sessionId: session._session_id,
+                    };
                   }
                 } catch (e) {
                   // Invalid session
@@ -251,6 +263,18 @@ function setupFallbackServer(app, options) {
   const cookieName = config.cookieName || "lemonldap";
   const domain = config.domain || "example.com";
 
+  // Get session directory from config (may be instance-specific)
+  const sessionDir = config.globalStorageOptions?.Directory || options.tmpDir;
+
+  // Ensure session directory exists
+  if (!fs.existsSync(sessionDir)) {
+    fs.mkdirSync(sessionDir, { recursive: true });
+  }
+  const lockDir = path.join(sessionDir, "lock");
+  if (!fs.existsSync(lockDir)) {
+    fs.mkdirSync(lockDir, { recursive: true });
+  }
+
   // Demo users
   const demoUsers = {
     dwho: {
@@ -302,9 +326,9 @@ function setupFallbackServer(app, options) {
   app.use(express.urlencoded({ extended: true }));
   app.use(express.json());
 
-  // Session helpers
+  // Session helpers (using sessionDir from config)
   function getSession(sessionId) {
-    const sessionFile = path.join(options.tmpDir, sessionId);
+    const sessionFile = path.join(sessionDir, sessionId);
     if (fs.existsSync(sessionFile)) {
       try {
         return JSON.parse(fs.readFileSync(sessionFile, "utf-8"));
@@ -316,12 +340,12 @@ function setupFallbackServer(app, options) {
   }
 
   function saveSession(session) {
-    const sessionFile = path.join(options.tmpDir, session._session_id);
+    const sessionFile = path.join(sessionDir, session._session_id);
     fs.writeFileSync(sessionFile, JSON.stringify(session));
   }
 
   function deleteSession(sessionId) {
-    const sessionFile = path.join(options.tmpDir, sessionId);
+    const sessionFile = path.join(sessionDir, sessionId);
     if (fs.existsSync(sessionFile)) {
       fs.unlinkSync(sessionFile);
     }

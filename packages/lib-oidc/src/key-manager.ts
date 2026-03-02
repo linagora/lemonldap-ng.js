@@ -212,7 +212,9 @@ export class KeyManager {
     if (this.config.oidcServiceOldPrivateKeyEnc) {
       try {
         // Convert PKCS#1 to PKCS#8 if needed
-        const pkcs8Key = convertToPKCS8(this.config.oidcServiceOldPrivateKeyEnc);
+        const pkcs8Key = convertToPKCS8(
+          this.config.oidcServiceOldPrivateKeyEnc,
+        );
         // Detect key type first to determine the algorithm
         const keyType =
           this.config.oidcServiceOldKeyTypeEnc ||

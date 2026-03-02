@@ -735,10 +735,19 @@ sub _init_and_start {
         $ini->{$k} //= $defaultIni->{$k};
     }
 
-    # Override tmpDir paths
-    $ini->{configStorage}{dirName} = $main::tmpDir;
-    $ini->{globalStorageOptions}{Directory} = $main::tmpDir;
-    $ini->{globalStorageOptions}{LockDirectory} = "$main::tmpDir/lock";
+    # Use instance-specific directory for isolation (config and sessions)
+    my $instanceName = $self->instanceName || 'default';
+    my $instanceDir = "$main::tmpDir/$instanceName";
+    File::Path::make_path($instanceDir) unless -d $instanceDir;
+    File::Path::make_path("$instanceDir/lock") unless -d "$instanceDir/lock";
+
+    # Store instance dir for later use
+    $self->{instanceDir} = $instanceDir;
+
+    # Override paths - each instance gets its own config and session directory
+    $ini->{configStorage}{dirName} = $instanceDir;
+    $ini->{globalStorageOptions}{Directory} = $instanceDir;
+    $ini->{globalStorageOptions}{LockDirectory} = "$instanceDir/lock";
 
     $self->{ini} = $ini;
 
@@ -776,10 +785,11 @@ sub writeJsConfig {
         https         => $ini->{https} || 0,
 
         # Session storage (JS uses session-file)
+        # Use instance-specific directory for session isolation
         globalStorage        => 'Apache::Session::File',
         globalStorageOptions => {
-            Directory     => $main::tmpDir,
-            LockDirectory => "$main::tmpDir/lock",
+            Directory     => $self->{instanceDir} || $main::tmpDir,
+            LockDirectory => ($self->{instanceDir} || $main::tmpDir) . "/lock",
         },
 
         # Location rules and headers
@@ -829,7 +839,9 @@ sub writeJsConfig {
         }
     }
 
-    my $configFile = "$main::tmpDir/lmConf-1.json";
+    # Write to instance-specific directory if available
+    my $instanceDir = $self->{instanceDir} || $main::tmpDir;
+    my $configFile = "$instanceDir/lmConf-1.json";
     open( my $fh, '>', $configFile ) or die "Cannot write $configFile: $!";
     print $fh JSON::to_json( $config, { pretty => 1 } );
     close $fh;
@@ -840,16 +852,18 @@ sub writeJsConfig {
 sub writeIniFile {
     my $self = shift;
 
-    my $iniFile = "$main::tmpDir/lemonldap-ng.ini";
+    # Write to instance-specific directory if available
+    my $instanceDir = $self->{instanceDir} || $main::tmpDir;
+    my $iniFile = "$instanceDir/lemonldap-ng.ini";
     open( my $fh, '>', $iniFile ) or die "Cannot write $iniFile: $!";
     print $fh "[configuration]\n";
     print $fh "type = File\n";
-    print $fh "dirName = $main::tmpDir\n";
+    print $fh "dirName = $instanceDir\n";
     print $fh "\n";
     print $fh "[sessions]\n";
     print $fh "storageModule = Apache::Session::File\n";
-    print $fh "Directory = $main::tmpDir\n";
-    print $fh "LockDirectory = $main::tmpDir/lock\n";
+    print $fh "Directory = $instanceDir\n";
+    print $fh "LockDirectory = $instanceDir/lock\n";
     close $fh;
 
     main::note("Wrote INI to $iniFile");
@@ -870,16 +884,19 @@ sub startJsServer {
     my $port = $self->serverPort;
     $self->serverUrl("http://localhost:$port");
 
+    # Use instance-specific directory if available
+    my $instanceDir = $self->{instanceDir} || $main::tmpDir;
+
     # Set environment variables for the server
-    $ENV{LLNG_TMPDIR} = $main::tmpDir;
+    $ENV{LLNG_TMPDIR} = $instanceDir;
     $ENV{LLNG_PORT} = $port;
-    $ENV{LLNG_DEFAULTCONFFILE} = "$main::tmpDir/lemonldap-ng.ini";
+    $ENV{LLNG_DEFAULTCONFFILE} = "$instanceDir/lemonldap-ng.ini";
     $ENV{LLNG_LOGLEVEL} = $ENV{DEBUG} ? 'debug' : 'warn';
 
     my $pid = fork();
     if ( $pid == 0 ) {
         # Child process - start Node.js server
-        exec( 'node', $serverScript, "--port=$port", "--tmpdir=$main::tmpDir" )
+        exec( 'node', $serverScript, "--port=$port", "--tmpdir=$instanceDir" )
           or die "Failed to exec node: $!";
     }
     elsif ( !defined $pid ) {
