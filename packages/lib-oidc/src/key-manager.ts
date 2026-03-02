@@ -6,7 +6,7 @@
  */
 
 import * as jose from "jose";
-import { createHash } from "crypto";
+import { createHash, createPrivateKey } from "crypto";
 import { KeyConfig, JWKS, SigningAlgorithm, Logger } from "./types";
 
 /**
@@ -53,6 +53,51 @@ function detectAlgorithm(keyType: "RSA" | "EC", use: "sig" | "enc"): string {
     return keyType === "RSA" ? "RSA-OAEP" : "ECDH-ES";
   }
   return keyType === "RSA" ? "RS256" : "ES256";
+}
+
+/**
+ * Convert PKCS#1 format to PKCS#8 format
+ *
+ * The jose library requires PKCS#8 format ("BEGIN PRIVATE KEY"),
+ * but many systems (including LemonLDAP::NG Perl) use PKCS#1
+ * format ("BEGIN RSA PRIVATE KEY" or "BEGIN EC PRIVATE KEY").
+ *
+ * This function automatically converts PKCS#1 to PKCS#8.
+ */
+function convertToPKCS8(pem: string): string {
+  // Check if already in PKCS#8 format
+  if (
+    pem.includes("BEGIN PRIVATE KEY") &&
+    !pem.includes("BEGIN RSA PRIVATE KEY") &&
+    !pem.includes("BEGIN EC PRIVATE KEY")
+  ) {
+    return pem;
+  }
+
+  // Check if it's a PKCS#1 RSA or EC key that needs conversion
+  if (
+    pem.includes("BEGIN RSA PRIVATE KEY") ||
+    pem.includes("BEGIN EC PRIVATE KEY")
+  ) {
+    try {
+      // Use Node.js crypto to parse and re-export in PKCS#8 format
+      const keyObject = createPrivateKey({
+        key: pem,
+        format: "pem",
+      });
+
+      return keyObject.export({
+        type: "pkcs8",
+        format: "pem",
+      }) as string;
+    } catch {
+      // If conversion fails, return original (let jose handle the error)
+      return pem;
+    }
+  }
+
+  // Unknown format, return as-is
+  return pem;
 }
 
 /**
@@ -104,15 +149,14 @@ export class KeyManager {
     // Load signing key
     if (this.config.oidcServicePrivateKeySig) {
       try {
+        // Convert PKCS#1 to PKCS#8 if needed
+        const pkcs8Key = convertToPKCS8(this.config.oidcServicePrivateKeySig);
         // Detect key type first to determine the algorithm
         const keyType =
           this.config.oidcServiceKeyTypeSig ||
           detectKeyType(this.config.oidcServicePrivateKeySig);
         const alg = detectAlgorithm(keyType, "sig");
-        const privateKey = await jose.importPKCS8(
-          this.config.oidcServicePrivateKeySig,
-          alg,
-        );
+        const privateKey = await jose.importPKCS8(pkcs8Key, alg);
         const kid =
           this.config.oidcServiceKeyIdSig || (await generateKeyId(privateKey));
 
@@ -138,15 +182,14 @@ export class KeyManager {
     // Load encryption key
     if (this.config.oidcServicePrivateKeyEnc) {
       try {
+        // Convert PKCS#1 to PKCS#8 if needed
+        const pkcs8Key = convertToPKCS8(this.config.oidcServicePrivateKeyEnc);
         // Detect key type first to determine the algorithm
         const keyType =
           this.config.oidcServiceKeyTypeEnc ||
           detectKeyType(this.config.oidcServicePrivateKeyEnc);
         const alg = detectAlgorithm(keyType, "enc");
-        const privateKey = await jose.importPKCS8(
-          this.config.oidcServicePrivateKeyEnc,
-          alg,
-        );
+        const privateKey = await jose.importPKCS8(pkcs8Key, alg);
         const kid = await generateKeyId(privateKey);
 
         this.encryptionKey = {
@@ -168,15 +211,14 @@ export class KeyManager {
     // Load old encryption key (for key rotation)
     if (this.config.oidcServiceOldPrivateKeyEnc) {
       try {
+        // Convert PKCS#1 to PKCS#8 if needed
+        const pkcs8Key = convertToPKCS8(this.config.oidcServiceOldPrivateKeyEnc);
         // Detect key type first to determine the algorithm
         const keyType =
           this.config.oidcServiceOldKeyTypeEnc ||
           detectKeyType(this.config.oidcServiceOldPrivateKeyEnc);
         const alg = detectAlgorithm(keyType, "enc");
-        const privateKey = await jose.importPKCS8(
-          this.config.oidcServiceOldPrivateKeyEnc,
-          alg,
-        );
+        const privateKey = await jose.importPKCS8(pkcs8Key, alg);
         const kid = await generateKeyId(privateKey);
 
         this.oldEncryptionKey = {

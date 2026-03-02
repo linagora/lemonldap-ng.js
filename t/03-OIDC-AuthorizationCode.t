@@ -10,9 +10,9 @@ BEGIN {
 my $debug = 'error';
 my ($res);
 
-# Use the alt keys which are in PKCS#8 format
-my $privateKey = alt_oidc_key_op_private_sig();
-my $publicKey = alt_oidc_cert_op_public_sig();
+# Use the standard OIDC keys (PKCS#1 format, auto-converted to PKCS#8)
+my $privateKey = oidc_key_op_private_sig();
+my $publicKey = oidc_key_op_public_sig();
 
 # Create instance with OIDC enabled
 ok(
