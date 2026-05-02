@@ -42,7 +42,7 @@
     "test": "echo"
   },
   "dependencies": {
-    "ldapts": "^8.0.9"
+    "ldapts": "^8.1.7"
   },
   "authors": [
     "Yadd <yadd@debian.org>"

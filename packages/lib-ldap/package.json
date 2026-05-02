@@ -29,7 +29,7 @@
   "homepage": "https://lemonldap-ng.org",
   "dependencies": {
     "@lemonldap-ng/types": "^0.8.0",
-    "ldapts": "^7.4.0"
+    "ldapts": "^8.1.7"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^28.0.3",
