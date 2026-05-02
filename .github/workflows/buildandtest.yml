@@ -14,12 +14,12 @@ jobs:
   lint:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - name: Use Node.js 22.x
-        uses: actions/setup-node@v3
+      - name: Use Node.js 24.x
+        uses: actions/setup-node@v4
         with:
-          node-version: 22.x
+          node-version: 24.x
 
       - name: Install ldap-utils, PostgreSQL client and liblasso
         run: sudo apt-get update && sudo apt-get install -y liblasso3-dev libxml2-dev libxmlsec1-dev libglib2.0-dev
@@ -37,7 +37,7 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        node-version: [24.x, 22.x]
+        node-version: [24.x]
 
     services:
       ldap:
@@ -71,7 +71,7 @@ jobs:
           --health-retries 5
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
@@ -128,12 +128,12 @@ jobs:
   interop-tests:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - name: Use Node.js 22.x
-        uses: actions/setup-node@v3
+      - name: Use Node.js 24.x
+        uses: actions/setup-node@v4
         with:
-          node-version: 22.x
+          node-version: 24.x
 
       - name: Install liblasso
         run: sudo apt-get update && sudo apt-get install -y liblasso3-dev libxml2-dev libxmlsec1-dev libglib2.0-dev
@@ -199,7 +199,7 @@ jobs:
     container:
       image: debian:testing
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Install system dependencies
         run: |
