@@ -14,7 +14,7 @@
   },
   "scripts": {
     "build": "rollup -c",
-    "test": "tsc --noEmit && jest"
+    "test": "vitest run"
   },
   "repository": {
     "type": "git",
@@ -35,14 +35,11 @@
     "@rollup/plugin-node-resolve": "^16.0.1",
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^12.1.2",
-    "@types/jest": "^29.5.14",
     "@types/node": "^22.15.21",
     "better-sqlite3": "^11.0.0",
-    "jest": "^29.7.0",
     "pg": "^8.11.3",
     "rollup": "^4.40.2",
     "rollup-plugin-cleaner": "^1.0.0",
-    "ts-jest": "^29.3.4",
     "typescript": "^5.8.3"
   },
   "keywords": [

@@ -17,7 +17,7 @@
   ],
   "scripts": {
     "build": "rollup -c",
-    "test": "tsc --noEmit && jest"
+    "test": "vitest run"
   },
   "keywords": [
     "lemonldap",
