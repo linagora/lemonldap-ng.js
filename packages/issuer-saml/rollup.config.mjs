@@ -6,7 +6,10 @@ import cleaner from "rollup-plugin-cleaner";
 
 const alwaysExt = ["@lemonldap-ng/lib-saml", "lasso.js", "express"];
 
-const commonPlugins = [typescript(), commonjs()];
+const commonPlugins = [
+  typescript({ exclude: ["**/__tests__", "**/*.test.ts"] }),
+  commonjs(),
+];
 
 function configure(esm) {
   return {

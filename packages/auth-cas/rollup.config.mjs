@@ -16,6 +16,7 @@ export default {
   ],
   plugins: [
     typescript({
+      exclude: ["**/__tests__", "**/*.test.ts"],
       tsconfig: "./tsconfig.json",
       declaration: true,
       declarationDir: "./lib",

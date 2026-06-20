@@ -57,12 +57,12 @@ beforeAll(() => {
 
 let warnSpy, errorSpy;
 beforeEach(() => {
-  warnSpy = jest.spyOn(console, "warn");
-  errorSpy = jest.spyOn(console, "error");
+  warnSpy = vi.spyOn(console, "warn");
+  errorSpy = vi.spyOn(console, "error");
 });
 
 afterAll(async () => {
-  // Stop the event loop and close session to allow Jest to exit
+  // Stop the event loop and close session to allow the test runner to exit
   await handler.shutdown();
   fs.rmSync(iniTmp);
   fs.rmSync(lmconfTmp);
@@ -72,169 +72,98 @@ afterAll(async () => {
 });
 
 describe("Main", () => {
-  beforeAll((done) => {
+  beforeAll(async () => {
     // load express app
-    import("./__testData__/express-app.js")
-      .then((mod) => {
-        mod.default
-          .then((res) => {
-            app = res;
-            done();
-          })
-          .catch((e) => {
-            done(e);
-          });
-      })
-      .catch((e) => {
-        done(e);
-      });
+    const mod = await import("./__testData__/express-app.js");
+    app = await mod.default;
   });
-  test("It should redirect unauthentified requests", (done) => {
-    request(app)
-      .get("/")
-      .then((response) => {
-        expect(response.status).toEqual(302);
-        expect(response.headers.location).toMatch(
-          new RegExp("^http://auth\\.example\\.com/\\?url="),
-        );
-        done();
-      });
+  test("It should redirect unauthentified requests", async () => {
+    const response = await request(app).get("/");
+    expect(response.status).toEqual(302);
+    expect(response.headers.location).toMatch(
+      new RegExp("^http://auth\\.example\\.com/\\?url="),
+    );
   });
 
-  test("It should redirect unexistent sessions", (done) => {
-    agent("bar", "/deny")
-      .expect(302)
-      .end((err, res) => {
-        if (err) return done(err);
-        expect(res.headers.location).toMatch(
-          new RegExp("^http://auth\\.example\\.com/\\?url="),
-        );
-        done();
-      });
+  test("It should redirect unexistent sessions", async () => {
+    const res = await agent("bar", "/deny").expect(302);
+    expect(res.headers.location).toMatch(
+      new RegExp("^http://auth\\.example\\.com/\\?url="),
+    );
   });
 
-  test("It should accept authentified requests", (done) => {
-    agent()
-      .expect(200)
-      .end((err, res) => {
-        if (err) return done(err);
-        expect(res.text).toEqual("Hello World!");
-        done();
-      });
+  test("It should accept authentified requests", async () => {
+    const res = await agent().expect(200);
+    expect(res.text).toEqual("Hello World!");
   });
 
-  test("It should reject /deny", (done) => {
-    agent("dwho", "/deny")
-      .expect(403)
-      .end((err) => {
-        if (err) return done(err);
-        done();
-      });
+  test("It should reject /deny", async () => {
+    await agent("dwho", "/deny").expect(403);
   });
 
-  test("It should accept /dwho for dwho", (done) => {
-    agent("dwho", "/dwho")
-      .expect(200)
-      .end((err) => {
-        if (err) return done(err);
-        done();
-      });
+  test("It should accept /dwho for dwho", async () => {
+    await agent("dwho", "/dwho").expect(200);
   });
 
-  test("It should deny /dwho for rtyler", (done) => {
-    agent("rtyler", "/dwho")
-      .expect(403)
-      .end((err) => {
-        if (err) return done(err);
-        done();
-      });
+  test("It should deny /dwho for rtyler", async () => {
+    await agent("rtyler", "/dwho").expect(403);
   });
 
-  test("It should send headers and remove cookie", (done) => {
-    agent("dwho", "/headers")
-      .expect(200)
-      .end((err, res) => {
-        if (err) return done(err);
-        let headers = JSON.parse(res.text);
-        expect(headers["Auth-User"]).toEqual("dwho");
-        expect(headers["cookie"]).toEqual("");
-        done();
-      });
+  test("It should send headers and remove cookie", async () => {
+    const res = await agent("dwho", "/headers").expect(200);
+    let headers = JSON.parse(res.text);
+    expect(headers["Auth-User"]).toEqual("dwho");
+    expect(headers["cookie"]).toEqual("");
   });
 
-  it("Should return an error if host isn't configured", (done) => {
-    agent("dwho", "/", "test3.example.com")
-      .expect(503)
-      .end((err) => {
-        if (err) return done(err);
-        done();
-      });
+  it("Should return an error if host isn't configured", async () => {
+    await agent("dwho", "/", "test3.example.com").expect(503);
   });
 });
 
 describe("handlerServiceToken", () => {
-  beforeEach((done) => {
-    const mod = require("./__testData__/express-app-st.js");
-    mod
-      .then((res) => {
-        app = res;
-        done();
-      })
-      .catch((e) => {
-        throw new Error(e);
-      });
+  beforeEach(async () => {
+    app = await require("./__testData__/express-app-st.js");
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
-  it("should works with user", (done) => {
-    agent("dwho", "/headers")
-      .expect(200)
-      .end((err, res) => {
-        if (err) return done(err);
-        let headers = JSON.parse(res.text);
-        expect(headers["Auth-User"]).toEqual("dwho");
-        expect(headers["cookie"]).toEqual("");
-        done();
-      });
+  it("should works with user", async () => {
+    const res = await agent("dwho", "/headers").expect(200);
+    let headers = JSON.parse(res.text);
+    expect(headers["Auth-User"]).toEqual("dwho");
+    expect(headers["cookie"]).toEqual("");
   });
 
-  it("should accept valid token", (done) => {
-    agentSt(cipher.token("dwhosession", "test1.example.com"), "/headers")
-      .expect(200)
-      .end((err, res) => {
-        if (err) return done(err);
-        let headers = JSON.parse(res.text);
-        expect(headers["Auth-User"]).toEqual("dwho");
-        done();
-      });
+  it("should accept valid token", async () => {
+    const res = await agentSt(
+      cipher.token("dwhosession", "test1.example.com"),
+      "/headers",
+    ).expect(200);
+    let headers = JSON.parse(res.text);
+    expect(headers["Auth-User"]).toEqual("dwho");
   });
 
   describe("errors", () => {
-    it("should reject invalid token", (done) => {
-      agentSt(
+    it("should reject invalid token", async () => {
+      const res = await agentSt(
         [
           parseInt(Math.trunc(Date.now() / 1000)),
           "dwhosession",
           "test1.example.com",
         ].join(":"),
         "/headers",
-      )
-        .expect(302)
-        .end((err, res) => {
-          if (err) return done(err);
-          expect(res.headers.location).toMatch(
-            new RegExp("^http://auth\\.example\\.com/\\?url="),
-          );
-          expect(errorSpy).toHaveBeenCalledWith("Invalid token");
-          done();
-        });
+      ).expect(302);
+      expect(res.headers.location).toMatch(
+        new RegExp("^http://auth\\.example\\.com/\\?url="),
+      );
+      expect(errorSpy).toHaveBeenCalledWith("Invalid token");
     });
 
-    it("should reject expired token", (done) => {
-      agentSt(
+    it("should reject expired token", async () => {
+      const res = await agentSt(
         crypto.encrypt(
           [
             parseInt(Math.trunc(Date.now() / 1000) - 31),
@@ -243,16 +172,11 @@ describe("handlerServiceToken", () => {
           ].join(":"),
         ),
         "/headers",
-      )
-        .expect(302)
-        .end((err, res) => {
-          if (err) return done(err);
-          expect(res.headers.location).toMatch(
-            new RegExp("^http://auth\\.example\\.com/\\?url="),
-          );
-          expect(warnSpy).toHaveBeenCalledWith("Expired service token");
-          done();
-        });
+      ).expect(302);
+      expect(res.headers.location).toMatch(
+        new RegExp("^http://auth\\.example\\.com/\\?url="),
+      );
+      expect(warnSpy).toHaveBeenCalledWith("Expired service token");
     });
   });
 });

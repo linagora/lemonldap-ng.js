@@ -29,8 +29,21 @@ export default defineConfig([
     languageOptions: {
       globals: {
         ...globals.browser,
-        ...globals.jest,
         ...globals.node,
+        // Vitest globals (vitest.config.ts sets globals: true)
+        suite: "readonly",
+        test: "readonly",
+        describe: "readonly",
+        it: "readonly",
+        expect: "readonly",
+        assert: "readonly",
+        vi: "readonly",
+        beforeAll: "readonly",
+        afterAll: "readonly",
+        beforeEach: "readonly",
+        afterEach: "readonly",
+        onTestFinished: "readonly",
+        onTestFailed: "readonly",
         Atomics: "readonly",
         SharedArrayBuffer: "readonly",
       },

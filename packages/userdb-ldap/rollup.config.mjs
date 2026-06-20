@@ -10,7 +10,10 @@ const alwaysExt = [
   "@lemonldap-ng/lib-ldap",
 ];
 
-const commonPlugins = [typescript(), commonjs()];
+const commonPlugins = [
+  typescript({ exclude: ["**/__tests__", "**/*.test.ts"] }),
+  commonjs(),
+];
 
 function configure(esm) {
   return {

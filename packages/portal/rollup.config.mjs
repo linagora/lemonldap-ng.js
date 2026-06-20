@@ -36,7 +36,11 @@ function copyAssets() {
   };
 }
 
-const commonPlugins = [typescript(), commonjs(), copyAssets()];
+const commonPlugins = [
+  typescript({ exclude: ["**/__tests__", "**/*.test.ts"] }),
+  commonjs(),
+  copyAssets(),
+];
 
 function configure(esm) {
   return {
