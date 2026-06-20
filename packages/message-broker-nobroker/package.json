@@ -1,6 +1,6 @@
 {
   "name": "@lemonldap-ng/message-broker-nobroker",
-  "version": "0.9.3",
+  "version": "0.9.4",
   "description": "No-op message broker for LemonLDAP::NG handler (single instance mode)",
   "main": "./lib/index.js",
   "module": "./lib/index.mjs",

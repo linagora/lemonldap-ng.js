@@ -1,6 +1,6 @@
 {
   "name": "@lemonldap-ng/message-broker-pg",
-  "version": "0.9.3",
+  "version": "0.9.4",
   "description": "PostgreSQL message broker for LemonLDAP::NG handler",
   "main": "./lib/index.js",
   "module": "./lib/index.mjs",
