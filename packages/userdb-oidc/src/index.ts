@@ -134,7 +134,7 @@ export class OIDCUserDB implements UserDBModule {
 
     // Get the exported vars for this OP
     const opKey = this.currentClaims.opConfKey;
-    let exportedVars: Record<string, string> = {};
+    let exportedVars: Record<string, string>;
 
     if (opKey && this.config.oidcOPMetaDataExportedVars?.[opKey]) {
       exportedVars = {

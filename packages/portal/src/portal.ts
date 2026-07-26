@@ -103,7 +103,9 @@ export class Portal {
       await this.authModule!.init(this.conf!, this.logger!);
       this.logger!.debug(`Auth module ${type} loaded`);
     } catch (e) {
-      throw new Error(`Failed to load auth module ${moduleName}: ${e}`);
+      throw new Error(`Failed to load auth module ${moduleName}: ${e}`, {
+        cause: e,
+      });
     }
   }
 
@@ -116,7 +118,9 @@ export class Portal {
       await this.userDBModule!.init(this.conf!, this.logger!);
       this.logger!.debug(`UserDB module ${type} loaded`);
     } catch (e) {
-      throw new Error(`Failed to load userDB module ${moduleName}: ${e}`);
+      throw new Error(`Failed to load userDB module ${moduleName}: ${e}`, {
+        cause: e,
+      });
     }
   }
 
@@ -129,7 +133,9 @@ export class Portal {
       await this.passwordModule!.init(this.conf!, this.logger!);
       this.logger!.debug(`Password module ${type} loaded`);
     } catch (e) {
-      throw new Error(`Failed to load password module ${moduleName}: ${e}`);
+      throw new Error(`Failed to load password module ${moduleName}: ${e}`, {
+        cause: e,
+      });
     }
   }
 
