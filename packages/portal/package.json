@@ -71,7 +71,6 @@
     "@types/supertest": "^6.0.2",
     "ldapjs": "^3.0.7",
     "rollup": "^4.40.2",
-    "rollup-plugin-cleaner": "^1.0.0",
     "supertest": "^7.1.0",
     "typescript": "^5.8.3"
   }

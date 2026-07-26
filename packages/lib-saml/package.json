@@ -35,7 +35,6 @@
     "@types/node": "^22.15.21",
     "lasso.js": "0.2.2",
     "rollup": "^4.40.2",
-    "rollup-plugin-cleaner": "^1.0.0",
     "typescript": "^5.8.3"
   },
   "keywords": [

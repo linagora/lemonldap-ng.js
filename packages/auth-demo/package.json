@@ -41,7 +41,6 @@
     "@types/express": "^5.0.2",
     "@types/node": "^22.15.21",
     "rollup": "^4.40.2",
-    "rollup-plugin-cleaner": "^1.0.0",
     "typescript": "^5.8.3"
   }
 }
