@@ -68,7 +68,7 @@
     "eslint": "^10.8.0",
     "express": "^5.1.0",
     "globals": "^17.7.0",
-    "lasso.js": "^0.2.2",
+    "lasso.js": "^0.2.3",
     "normalize-url": "^8.0.1",
     "prettier": "^3.5.3",
     "redis-mock": "^0.56.3",

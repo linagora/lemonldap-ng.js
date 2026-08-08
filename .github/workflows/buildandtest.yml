@@ -12,14 +12,14 @@ on:
 
 jobs:
   lint:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - name: Use Node.js 24.x
-        uses: actions/setup-node@v4
+      - name: Use Node.js 26.x
+        uses: actions/setup-node@v5
         with:
-          node-version: 24.x
+          node-version: 26.x
 
       - name: Install ldap-utils, PostgreSQL client and liblasso
         run: sudo apt-get update && sudo apt-get install -y liblasso3-dev libxml2-dev libxmlsec1-dev libglib2.0-dev
@@ -34,10 +34,10 @@ jobs:
         run: npm run format:check
 
   build-and-test:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     strategy:
       matrix:
-        node-version: [24.x]
+        node-version: [26.x]
 
     services:
       ldap:
@@ -71,10 +71,9 @@ jobs:
           --health-retries 5
 
     steps:
-      - uses: actions/checkout@v4
-
+      - uses: actions/checkout@v5
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: ${{ matrix.node-version }}
 
@@ -126,14 +125,14 @@ jobs:
         continue-on-error: true
 
   interop-tests:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - name: Use Node.js 24.x
-        uses: actions/setup-node@v4
+      - name: Use Node.js 26.x
+        uses: actions/setup-node@v5
         with:
-          node-version: 24.x
+          node-version: 26.x
 
       - name: Install liblasso
         run: sudo apt-get update && sudo apt-get install -y liblasso3-dev libxml2-dev libxmlsec1-dev libglib2.0-dev
@@ -199,7 +198,7 @@ jobs:
     container:
       image: debian:testing
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Install system dependencies
         run: |
@@ -242,14 +241,14 @@ jobs:
           PERL5LIB: .
 
   audit:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     strategy:
       matrix:
-        node-version: [24.x]
+        node-version: [26.x]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: ${{ matrix.node-version }}
       - run: npm audit --audit-level=high
