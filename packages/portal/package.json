@@ -58,7 +58,7 @@
     "@lemonldap-ng/password-ldap": "^0.8.0",
     "@lemonldap-ng/userdb-dbi": "^0.8.0",
     "@lemonldap-ng/userdb-ldap": "^0.8.0",
-    "better-sqlite3": "^11.0.0",
+    "better-sqlite3": "^12.11.1",
     "perl-dbi": "^0.8.0",
     "@rollup/plugin-commonjs": "^28.0.3",
     "@rollup/plugin-node-resolve": "^16.0.1",
