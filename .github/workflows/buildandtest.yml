@@ -200,11 +200,15 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      - name: Use Node.js 26.x
+        uses: actions/setup-node@v5
+        with:
+          node-version: 26.x
+
       - name: Install system dependencies
         run: |
           apt-get update
           apt-get install -y --install-recommends \
-            nodejs npm \
             build-essential python3-setuptools \
             liblemonldap-ng-portal-perl \
             fonts-urw-base35 \
