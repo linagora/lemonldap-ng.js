@@ -196,7 +196,7 @@ jobs:
   perl-tests:
     runs-on: ubuntu-latest
     container:
-      image: debian:testing
+      image: debian:trixie
     steps:
       - uses: actions/checkout@v5
 
