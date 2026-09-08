@@ -17,7 +17,7 @@ export type FastCGI_Opts = {
 
 class LemonldapNGHandler extends HandlerInit {
   /* Internal handler cache for session data */
-  private lastSessionId: string | null = null;
+  protected lastSessionId: string | null = null;
   private lastSessionData: LLNG_Session | null = null;
   private lastSessionTime: number = 0;
 
@@ -58,42 +58,48 @@ class LemonldapNGHandler extends HandlerInit {
       return next();
     }
 
-    /* 4 - search for LLNG cookie */
-    const id = this.fetchId(req);
-    if (id !== "") {
-      this.retrieveSession(id)
-        .then((session) => {
-          const user = session[this.tsv.whatToTrace];
-          this.userLogger.debug(`User ${user} identified`);
-          this.grant(req, <string>uri, session)
-            .then((grantResult) => {
-              if (grantResult) {
-                this.sendHeaders(req, session);
-                this.hideCookie(req);
-                next();
-                this.userLogger.info(
-                  `${vhost}: user ${user} was granted access to ${uri}`,
-                );
-              } else {
-                this.forbidden(req, res, session);
-                this.userLogger.notice(
-                  `${vhost}: user ${user} was denied access to ${uri}`,
-                );
-              }
-            })
-            .catch((e) => {
-              this.userLogger.error(`Authorization check failed: ${e}`);
-              this.setError(res, "/", 503, "Service Unavailable");
-            });
-        })
+    /* 4 - search for LLNG cookie (or any other credential, see subclasses) */
+    Promise.resolve(this.fetchId(req))
+      .then((id) => {
+        if (id === "") {
+          return this.goToPortal(res, this.selfUri(<string>vhost, <string>uri));
+        }
+        this.retrieveSession(id, req)
+          .then((session) => {
+            const user = session[this.tsv.whatToTrace];
+            this.userLogger.debug(`User ${user} identified`);
+            this.grant(req, <string>uri, session)
+              .then((grantResult) => {
+                if (grantResult) {
+                  this.sendHeaders(req, session);
+                  this.hideCookie(req);
+                  next();
+                  this.userLogger.info(
+                    `${vhost}: user ${user} was granted access to ${uri}`,
+                  );
+                } else {
+                  this.forbidden(req, res, session);
+                  this.userLogger.notice(
+                    `${vhost}: user ${user} was denied access to ${uri}`,
+                  );
+                }
+              })
+              .catch((e) => {
+                this.userLogger.error(`Authorization check failed: ${e}`);
+                this.setError(res, "/", 503, "Service Unavailable");
+              });
+          })
 
-        .catch((_e) => {
-          /* Expired session */
-          this.goToPortal(res, this.selfUri(<string>vhost, <string>uri));
-        });
-    } else {
-      this.goToPortal(res, this.selfUri(<string>vhost, <string>uri));
-    }
+          .catch((_e) => {
+            /* Expired session */
+            this.goToPortal(res, this.selfUri(<string>vhost, <string>uri));
+          });
+      })
+      // istanbul ignore next
+      .catch((e) => {
+        this.userLogger.error(`Unable to fetch session id: ${e}`);
+        this.goToPortal(res, this.selfUri(<string>vhost, <string>uri));
+      });
   }
 
   selfUri(vhost: string, uri: string) {
@@ -160,7 +166,9 @@ class LemonldapNGHandler extends HandlerInit {
     return vhost ? this.tsv.vhostAlias[vhost] || vhost : "undef";
   }
 
-  fetchId(req: express.Request | http.IncomingMessage) {
+  fetchId(
+    req: express.Request | http.IncomingMessage,
+  ): string | Promise<string> {
     if (req.headers.cookie) {
       const res = this.tsv.cookieDetect.exec(req.headers.cookie);
       if (res && res[1] != "0") return res[1];
@@ -168,7 +176,7 @@ class LemonldapNGHandler extends HandlerInit {
     return "";
   }
 
-  retrieveSession(id: string) {
+  retrieveSession(id: string, _req?: express.Request | http.IncomingMessage) {
     return new Promise<LLNG_Session>((resolve, reject) => {
       if (this.sessionAcc === undefined)
         // istanbul ignore next
@@ -254,7 +262,9 @@ class LemonldapNGHandler extends HandlerInit {
   ) {
     return new Promise<boolean>((resolve, reject) => {
       const vhost = this.resolveAlias(req);
-      if (!Object.prototype.hasOwnProperty.call(this.tsv.defaultCondition, vhost)) {
+      if (
+        !Object.prototype.hasOwnProperty.call(this.tsv.defaultCondition, vhost)
+      ) {
         return reject(
           `No configuration found for ${vhost} (or not listed in Node.js virtualHosts)`,
         );

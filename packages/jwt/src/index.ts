@@ -99,15 +99,25 @@ export function getJWTSignedData(jwt: string): string | null {
 /**
  * Extracts the session ID from an access token.
  * If the token is a JWT, extracts the `jti` field; otherwise, treats the token as a raw session ID.
+ *
+ * No signature is verified here, and none is needed: the returned value is not
+ * an identity claim but the identifier of an access token session created by
+ * the Portal. Callers MUST look it up in the OIDC session storage, which is the
+ * actual trust anchor - see Lemonldap::NG::Handler::Lib::OAuth2 and its port in
+ * `@lemonldap-ng/handler`. A token whose `jti` is unknown to that storage grants
+ * nothing.
+ *
  * @param accessToken - Access token (JWT or raw session ID)
- * @returns Session ID or null if not found
+ * @returns Access token session ID or null if not found
  */
 export function getAccessTokenSessionId(accessToken: string): string | null {
   // Access Token is a JWT, extract the JTI field and use it as session ID
   if (accessToken.indexOf(".") > 0) {
     const payload = getJWTPayload(accessToken);
 
-    if (payload && payload.jti) {
+    // `jti` comes from an unverified payload: it may be of any JSON type,
+    // while callers expect a session id
+    if (payload && typeof payload.jti === "string" && payload.jti !== "") {
       return payload.jti;
     }
 
