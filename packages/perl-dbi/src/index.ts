@@ -19,7 +19,13 @@ export interface DBI_ConnectionOptions {
   sid?: string;
   user?: string;
   password?: string;
-  sslmode?: "disable" | "allow" | "prefer" | "require" | "verify-ca" | "verify-full";
+  sslmode?:
+    | "disable"
+    | "allow"
+    | "prefer"
+    | "require"
+    | "verify-ca"
+    | "verify-full";
 }
 
 /**
@@ -159,9 +165,10 @@ function PerlDBI(args: PerlDBI_Args): PerlDBI_Client {
   // Convert identifiers to match DB behavior and restore original case in results.
   if (type === "pg" || type === "oracledb") {
     const identifierMap = new Map<string, string>();
-    const transform = type === "pg"
-      ? (s: string) => s.toLowerCase()
-      : (s: string) => s.toUpperCase();
+    const transform =
+      type === "pg"
+        ? (s: string) => s.toLowerCase()
+        : (s: string) => s.toUpperCase();
 
     dbArgs.wrapIdentifier = (value, origImpl) => {
       const transformed = transform(value);
