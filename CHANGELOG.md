@@ -1,5 +1,29 @@
 # Changelog
 
+## Unreleased
+
+- handler: complete the OAuth2 handler port
+  (`Lemonldap::NG::Handler::Lib::OAuth2`). A Bearer token now designates an
+  access token session, which is followed to the user (or offline) session it
+  was issued for, instead of being used directly as a user session id. Token
+  attributes (`_scope`, `_clientId`, `_clientConfKey`, `_oidc_grant_type`,
+  `_audiences`, `_accessToken`) are exposed to rules and headers,
+  unauthenticated requests get a `401` with a `WWW-Authenticate: Bearer`
+  challenge (RFC 6750) instead of a redirection to the portal, the
+  `Authorization` header is hidden from the protected application, and
+  `unlog`/`delSession` also purge the OIDC session caches so that a revoked
+  token stops being honoured at once. `oidcStorage`, `oidcStorageOptions` and
+  `oidcRPMetaDataOptions` are read from the configuration and applied again on
+  every reload
+- handler: **breaking** — a user session id is no longer accepted as a Bearer
+  token, and a session id not shaped like one (`/^[A-Za-z0-9_-]+$/`) is refused
+  before reaching the storage. Deployments using a custom session id generator
+  producing other characters must adapt it
+- handler: `fetchId()` may now return a promise, and `retrieveSession()`
+  receives the request as an optional second argument
+- jwt: `getAccessTokenSessionId()` only returns a `jti` claim that is a
+  non-empty string, as its signature promises
+
 ## 0.9.6
 
 - Update re2 to 1.26.1

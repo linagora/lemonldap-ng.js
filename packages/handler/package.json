@@ -59,7 +59,7 @@
   "scripts": {
     "test": "vitest run",
     "build": "npm run check && npm run rollup && cp ../../CHANGELOG.md ./",
-    "check": "tsc --noEmit",
+    "check": "tsc --noEmit && tsc -p tsconfig.test.json",
     "rollup": "rollup -c"
   },
   "gitHead": "e692ccc036459a940dc07ff6da5730cca87d2607"

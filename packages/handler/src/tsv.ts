@@ -49,6 +49,10 @@ export declare type TSV = {
   loopBackUrl: string | undefined;
   lastVhostUpdate: { [k: vhost]: number };
 
+  /* Session storage */
+  sessionStorageModule?: string;
+  sessionStorageOptions?: Backend_Options;
+
   /* OAuth2/OIDC */
   oidcStorageModule?: string;
   oidcStorageOptions?: Backend_Options;
