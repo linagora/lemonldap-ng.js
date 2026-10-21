@@ -169,10 +169,11 @@ abstract class HandlerInit implements MsgActionHandler {
              * Sessions storage initialization
              */
 
-            //['global','oidc'].forEach
             if (!conf["globalStorage"] || !conf["globalStorageOptions"])
               // istanbul ignore next
               throw new Error("Missing session storage configuration");
+            this.tsv.sessionStorageModule = conf["globalStorage"];
+            this.tsv.sessionStorageOptions = conf["globalStorageOptions"];
             try {
               this.sessionAcc = new Session({
                 storageModule: conf["globalStorage"],
@@ -184,6 +185,32 @@ abstract class HandlerInit implements MsgActionHandler {
                 cause: e,
               });
             }
+
+            /**
+             * OIDC/OAuth2 initialization (used by the OAuth2 handler type)
+             */
+
+            // Access token sessions are stored apart only when oidcStorage is
+            // set, else they share the global storage
+            if (conf.oidcStorage) {
+              this.tsv.oidcStorageModule = conf.oidcStorage;
+              this.tsv.oidcStorageOptions = conf.oidcStorageOptions || {};
+            } else {
+              this.tsv.oidcStorageModule = conf["globalStorage"];
+              this.tsv.oidcStorageOptions = conf["globalStorageOptions"];
+            }
+
+            // Keep the client id of each relying party, exposed to rules and
+            // headers as $_clientId
+            this.tsv.oauth2Options = {};
+            Object.keys(conf.oidcRPMetaDataOptions || {}).forEach(
+              (rp: string) => {
+                const clientId =
+                  conf.oidcRPMetaDataOptions[rp]?.oidcRPMetaDataOptionsClientID;
+                // @ts-ignore: oauth2Options has just been initialized
+                if (clientId) this.tsv.oauth2Options[rp] = { clientId };
+              },
+            );
 
             /**
              * Location rules initialization

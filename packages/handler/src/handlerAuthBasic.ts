@@ -76,7 +76,7 @@ class LemonldapNGHandlerAuthBasic extends LemonldapNGHandler {
     }
 
     // Fall back to cookie-based authentication
-    return super.fetchId(req);
+    return <string>super.fetchId(req);
   }
 
   /**

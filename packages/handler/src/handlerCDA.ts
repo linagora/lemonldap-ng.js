@@ -21,7 +21,7 @@ class LemonldapNGHandlerCDA extends LemonldapNGHandler {
   fetchId(req: express.Request | http.IncomingMessage): string {
     // Check if CDA is enabled
     if (!this.tsv.cda) {
-      return super.fetchId(req);
+      return <string>super.fetchId(req);
     }
 
     // 1. Check for CDA URL parameter (from redirect)
@@ -55,7 +55,7 @@ class LemonldapNGHandlerCDA extends LemonldapNGHandler {
     }
 
     // 3. Fall back to standard cookie
-    return super.fetchId(req);
+    return <string>super.fetchId(req);
   }
 
   /**

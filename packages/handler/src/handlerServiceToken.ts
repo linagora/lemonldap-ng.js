@@ -45,7 +45,7 @@ class LemonldapNGHandlerServiceToken extends LemonldapNGHandler {
       // Then use token sessionId
       return tokenElement[1];
     }
-    return super.fetchId(req);
+    return <string>super.fetchId(req);
   }
 }
 

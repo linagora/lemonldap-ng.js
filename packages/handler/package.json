@@ -1,6 +1,6 @@
 {
   "name": "lemonldap-ng-handler",
-  "version": "0.9.5",
+  "version": "0.9.6",
   "description": "LemonLDAP::NG handler for Node.js",
   "main": "./lib/index.js",
   "module": "./lib/index.mjs",
@@ -59,7 +59,7 @@
   "scripts": {
     "test": "vitest run",
     "build": "npm run check && npm run rollup && cp ../../CHANGELOG.md ./",
-    "check": "tsc --noEmit",
+    "check": "tsc --noEmit && tsc -p tsconfig.test.json",
     "rollup": "rollup -c"
   },
   "gitHead": "e692ccc036459a940dc07ff6da5730cca87d2607"
