@@ -1,0 +1,12 @@
+# Inscrit ce dépôt au bot auto-js-pr (mises à jour de dépendances vulnérables).
+#
+# Une partie des tests a besoin de LDAP, PostgreSQL et de conteneurs (voir
+# .github/workflows/buildandtest.yml), que le bot ne démarre pas : il vérifie
+# la compilation et le lint, et la CI du projet fait tourner les tests sur la
+# pull request.
+verifyCommands:
+  - npm run build
+  - npm run lint
+
+# Sans les tests côté bot, un humain fusionne.
+autoMerge: false
