@@ -1,6 +1,6 @@
 {
   "name": "@lemonldap-ng/session-dbi",
-  "version": "0.9.4",
+  "version": "0.10.0",
   "description": "lemonldap-ng class for DBI session access",
   "main": "./lib/index.js",
   "module": "./lib/index.mjs",
@@ -31,14 +31,14 @@
     "*.md"
   ],
   "dependencies": {
-    "perl-dbi": "^0.9.3"
+    "perl-dbi": "^0.10.0"
   },
   "bugs": {
     "url": "https://gitlab.ow2.org/lemonldap-ng/lemonldap-ng/issues"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/LemonLDAPNG/lemonldap-ng.js.git"
+    "url": "git+https://github.com/LemonLDAPNG/lemonldap-ng.js.git"
   },
   "keywords": [
     "Lemonldap::NG",

@@ -1,6 +1,6 @@
 {
   "name": "@lemonldap-ng/conf",
-  "version": "0.9.5",
+  "version": "0.10.0",
   "description": "LemonLDAP::NG configuration loader",
   "main": "./lib/index.js",
   "module": "./lib/index.mjs",
@@ -31,24 +31,24 @@
     "*.md"
   ],
   "dependencies": {
-    "@lemonldap-ng/conf-file": "^0.9.3",
-    "@lemonldap-ng/crypto": "^0.9.3",
+    "@lemonldap-ng/conf-file": "^0.10.0",
+    "@lemonldap-ng/crypto": "^0.10.0",
     "ini": "^3.0.0"
   },
   "optionalDependencies": {
-    "@lemonldap-ng/conf-cdbi": "^0.9.3",
-    "@lemonldap-ng/conf-ldap": "^0.9.3",
-    "@lemonldap-ng/conf-mongodb": "^0.9.3",
-    "@lemonldap-ng/conf-rdbi": "^0.9.3",
-    "@lemonldap-ng/conf-rest": "^0.9.3",
-    "@lemonldap-ng/conf-yaml": "^0.9.3"
+    "@lemonldap-ng/conf-cdbi": "^0.10.0",
+    "@lemonldap-ng/conf-ldap": "^0.10.0",
+    "@lemonldap-ng/conf-mongodb": "^0.10.0",
+    "@lemonldap-ng/conf-rdbi": "^0.10.0",
+    "@lemonldap-ng/conf-rest": "^0.10.0",
+    "@lemonldap-ng/conf-yaml": "^0.10.0"
   },
   "bugs": {
     "url": "https://gitlab.ow2.org/lemonldap-ng/lemonldap-ng/issues"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/LemonLDAPNG/lemonldap-ng.js.git"
+    "url": "git+https://github.com/LemonLDAPNG/lemonldap-ng.js.git"
   },
   "keywords": [
     "Lemonldap::NG",
