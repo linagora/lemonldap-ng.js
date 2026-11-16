@@ -1,6 +1,6 @@
 {
   "name": "@lemonldap-ng/password-dbi",
-  "version": "0.8.0",
+  "version": "0.10.0",
   "description": "DBI (SQL) password module for LemonLDAP::NG",
   "main": "lib/index.cjs",
   "module": "lib/index.mjs",
@@ -33,7 +33,7 @@
     }
   ],
   "dependencies": {
-    "perl-dbi": "^0.8.0"
+    "perl-dbi": "^0.10.0"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^28.0.3",

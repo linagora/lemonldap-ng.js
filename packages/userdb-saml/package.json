@@ -1,6 +1,6 @@
 {
   "name": "@lemonldap-ng/userdb-saml",
-  "version": "0.8.0",
+  "version": "0.10.0",
   "description": "SAML User Database module for LemonLDAP::NG",
   "main": "lib/index.cjs",
   "module": "lib/index.mjs",
@@ -35,6 +35,6 @@
   "author": "LemonLDAP::NG Team",
   "license": "GPL-2.0-only",
   "dependencies": {
-    "@lemonldap-ng/lib-saml": "^0.8.0"
+    "@lemonldap-ng/lib-saml": "^0.10.0"
   }
 }

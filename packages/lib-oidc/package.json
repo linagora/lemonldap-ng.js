@@ -1,6 +1,6 @@
 {
   "name": "@lemonldap-ng/lib-oidc",
-  "version": "0.8.0",
+  "version": "0.10.0",
   "description": "OIDC utilities and cryptographic functions for LemonLDAP::NG",
   "main": "lib/index.cjs",
   "module": "lib/index.mjs",

@@ -1,6 +1,6 @@
 {
   "name": "@lemonldap-ng/userdb-oidc",
-  "version": "0.8.0",
+  "version": "0.10.0",
   "description": "OIDC user database module for LemonLDAP::NG portal",
   "main": "lib/index.cjs",
   "module": "lib/index.mjs",
@@ -39,10 +39,10 @@
     "user-database"
   ],
   "dependencies": {
-    "@lemonldap-ng/types": "^0.8.0"
+    "@lemonldap-ng/types": "^0.10.0"
   },
   "peerDependencies": {
-    "@lemonldap-ng/portal": "^0.8.0"
+    "@lemonldap-ng/portal": "^0.10.0"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^28.0.3",

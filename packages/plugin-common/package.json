@@ -1,6 +1,6 @@
 {
   "name": "@lemonldap-ng/plugin-common",
-  "version": "0.8.0",
+  "version": "0.10.0",
   "description": "Common base classes and utilities for LemonLDAP::NG plugins",
   "main": "lib/index.cjs",
   "module": "lib/index.mjs",
@@ -33,10 +33,10 @@
   },
   "homepage": "https://lemonldap-ng.org",
   "dependencies": {
-    "@lemonldap-ng/types": "^0.8.0"
+    "@lemonldap-ng/types": "^0.10.0"
   },
   "peerDependencies": {
-    "@lemonldap-ng/portal": "^0.8.0"
+    "@lemonldap-ng/portal": "^0.10.0"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^28.0.3",

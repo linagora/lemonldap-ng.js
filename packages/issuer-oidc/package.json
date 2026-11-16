@@ -1,6 +1,6 @@
 {
   "name": "@lemonldap-ng/issuer-oidc",
-  "version": "0.8.0",
+  "version": "0.10.0",
   "description": "OIDC Provider (Issuer) for LemonLDAP::NG",
   "main": "lib/index.cjs",
   "module": "lib/index.mjs",
@@ -34,7 +34,7 @@
   "author": "LemonLDAP::NG Team",
   "license": "GPL-2.0-only",
   "dependencies": {
-    "@lemonldap-ng/lib-oidc": "^0.8.0"
+    "@lemonldap-ng/lib-oidc": "^0.10.0"
   },
   "peerDependencies": {
     "express": "^4.18.2 || ^5.0.0",

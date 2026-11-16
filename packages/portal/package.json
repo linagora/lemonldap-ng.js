@@ -1,6 +1,6 @@
 {
   "name": "@lemonldap-ng/portal",
-  "version": "0.8.0",
+  "version": "0.10.0",
   "description": "LemonLDAP::NG Portal - Authentication portal for WebSSO",
   "main": "lib/index.cjs",
   "module": "lib/index.mjs",
@@ -37,18 +37,18 @@
     }
   ],
   "dependencies": {
-    "@lemonldap-ng/2fa-common": "^0.8.0",
-    "@lemonldap-ng/conf": "^0.8.0",
-    "@lemonldap-ng/crypto": "^0.8.0",
-    "@lemonldap-ng/logger": "^0.8.0",
-    "@lemonldap-ng/session": "^0.8.0",
-    "@lemonldap-ng/types": "^0.8.0",
+    "@lemonldap-ng/2fa-common": "^0.10.0",
+    "@lemonldap-ng/conf": "^0.10.0",
+    "@lemonldap-ng/crypto": "^0.10.0",
+    "@lemonldap-ng/logger": "^0.10.0",
+    "@lemonldap-ng/session": "^0.10.0",
+    "@lemonldap-ng/types": "^0.10.0",
     "cookie-parser": "^1.4.6",
     "express": "^5.1.0",
     "nunjucks": "^3.2.4"
   },
   "optionalDependencies": {
-    "@lemonldap-ng/2fa-totp": "^0.8.0"
+    "@lemonldap-ng/2fa-totp": "^0.10.0"
   },
   "keywords": [
     "Lemonldap::NG",
@@ -57,14 +57,14 @@
     "authentication"
   ],
   "devDependencies": {
-    "@lemonldap-ng/auth-dbi": "^0.8.0",
-    "@lemonldap-ng/auth-ldap": "^0.8.0",
-    "@lemonldap-ng/password-dbi": "^0.8.0",
-    "@lemonldap-ng/password-ldap": "^0.8.0",
-    "@lemonldap-ng/userdb-dbi": "^0.8.0",
-    "@lemonldap-ng/userdb-ldap": "^0.8.0",
+    "@lemonldap-ng/auth-dbi": "^0.10.0",
+    "@lemonldap-ng/auth-ldap": "^0.10.0",
+    "@lemonldap-ng/password-dbi": "^0.10.0",
+    "@lemonldap-ng/password-ldap": "^0.10.0",
+    "@lemonldap-ng/userdb-dbi": "^0.10.0",
+    "@lemonldap-ng/userdb-ldap": "^0.10.0",
     "better-sqlite3": "^12.11.1",
-    "perl-dbi": "^0.8.0",
+    "perl-dbi": "^0.10.0",
     "@rollup/plugin-commonjs": "^28.0.3",
     "@rollup/plugin-node-resolve": "^16.0.1",
     "@rollup/plugin-terser": "^0.4.4",

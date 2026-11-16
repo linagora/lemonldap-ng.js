@@ -1,6 +1,6 @@
 {
   "name": "@lemonldap-ng/issuer-cas",
-  "version": "0.8.0",
+  "version": "0.10.0",
   "description": "CAS Server/IdP for LemonLDAP::NG",
   "main": "lib/index.cjs",
   "module": "lib/index.mjs",
@@ -31,7 +31,7 @@
   "author": "",
   "license": "GPL-2.0-or-later",
   "dependencies": {
-    "@lemonldap-ng/lib-cas": "^0.8.0"
+    "@lemonldap-ng/lib-cas": "^0.10.0"
   },
   "devDependencies": {
     "@rollup/plugin-typescript": "^11.1.5",
