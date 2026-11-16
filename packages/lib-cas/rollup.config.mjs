@@ -1,4 +1,5 @@
 import typescript from "@rollup/plugin-typescript";
+import dmts from "../../rollup-dmts.mjs";
 
 export default {
   input: "src/index.ts",
@@ -21,6 +22,7 @@ export default {
       declaration: true,
       declarationDir: "./lib",
     }),
+    dmts({ dir: "lib" }),
   ],
   external: [],
 };

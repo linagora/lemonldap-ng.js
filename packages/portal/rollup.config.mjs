@@ -4,6 +4,7 @@ import typescript from "@rollup/plugin-typescript";
 import terser from "@rollup/plugin-terser";
 import cleaner from "../../rollup-cleaner.mjs";
 import { cpSync, mkdirSync } from "fs";
+import dmts from "../../rollup-dmts.mjs";
 
 const alwaysExt = [
   "@lemonldap-ng/2fa-common",
@@ -61,7 +62,7 @@ function configure(esm) {
         },
     external: alwaysExt,
     plugins: esm
-      ? commonPlugins
+      ? [...commonPlugins, dmts({ dir: "lib" })]
       : [
           cleaner({ targets: ["./lib"] }),
           ...commonPlugins,

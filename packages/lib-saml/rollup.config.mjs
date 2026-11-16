@@ -3,6 +3,7 @@ import { nodeResolve } from "@rollup/plugin-node-resolve";
 import typescript from "@rollup/plugin-typescript";
 import terser from "@rollup/plugin-terser";
 import cleaner from "../../rollup-cleaner.mjs";
+import dmts from "../../rollup-dmts.mjs";
 
 const alwaysExt = ["lasso.js"];
 
@@ -31,7 +32,7 @@ function configure(esm) {
         },
     external: alwaysExt,
     plugins: esm
-      ? commonPlugins
+      ? [...commonPlugins, dmts({ dir: "lib" })]
       : [
           cleaner({ targets: ["./lib"] }),
           ...commonPlugins,
